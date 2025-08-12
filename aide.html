@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aide - Binokub Puzzle 9</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Style personnalisé pour améliorer la lisibilité */
+        body {
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 1200px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h2 {
+            color: #0d6efd; /* Bleu Bootstrap */
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        h3 {
+            color: #495057;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        p, li {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .language-column {
+            padding: 1rem;
+        }
+        .fr-column {
+            border-right: 1px solid #dee2e6;
+        }
+        .code-example {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre;
+        }
+        /* Pour les petits écrans, on enlève la bordure */
+        @media (max-width: 768px) {
+            .fr-column {
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+        <h1>Aide : Binokub Puzzle 9</h1>
+        <div class="row">
+            
+            <div class="col-md-6 language-column fr-column">
+                <h2>Version Française - <A HREF="index.html">INDEX</a></h2>
+
+                <h3>Le But du Jeu</h3>
+                <p>Le but est de replacer chaque numéro coloré à sa place correcte pour reconstituer une grille logique parfaite.</p>
+
+                <h3>Le Principe Binokub</h3>
+                
+                <h5>Les Bases (Colonnes et Couleurs)</h5>
+                <p>Chaque numéro appartient à une "Base" (un chiffre de 1 à 9). La Base est calculée en additionnant les chiffres du nombre jusqu'à n'en obtenir qu'un seul.<br><em>Exemple : Pour le numéro 78, on fait 7 + 8 = 15. Puis, 1 + 5 = 6. La Base est 6.</em><br>La Base d'un numéro détermine sa <strong>colonne</strong> finale. Sa <strong>couleur</strong> est votre indice !</p>
+                
+                <h5>Les Suites (La Logique de la Grille)</h5>
+                <p>La grille n'est pas aléatoire. Les numéros se suivent selon une double règle mathématique :<br>
+                - <strong>Verticalement :</strong> +9 en descendant d'une case.<br>
+                - <strong>Horizontalement :</strong> +1 en se déplaçant d'une case vers la droite.</p>
+
+                <h3>Comment Jouer</h3>
+                <ul>
+                    <li><strong>Sélectionnez</strong> un numéro en cliquant dessus.</li>
+                    <li><strong>Cliquez sur une case</strong> pour y déplacer le numéro. Un déplacement n'est valide que si le numéro est placé à sa position finale correcte.</li>
+                    <li>Si la case de destination est occupée par un autre numéro, les deux numéros <strong>échangeront</strong> leur place si le mouvement est correct.</li>
+                </ul>
+
+                <h3>Les Modes de Jeu</h3>
+                
+                <h5>Mode Survie</h5>
+                <p>C'est un test de <strong>précision</strong>.</p>
+                <ul>
+                    <li>La première erreur verrouille la case de départ 🔒 et vous coûte des points.</li>
+                    <li>La deuxième erreur met fin à la partie (Game Over).</li>
+                </ul>
+
+                <h5>Mode Coups Limités</h5>
+                <p>C'est un test d'<strong>efficacité</strong>.</p>
+                <ul>
+                    <li>Résolvez le puzzle avant que votre budget de coups ne tombe à zéro.</li>
+                    <li>Une erreur vous coûte un coup et des points.</li>
+                    <li><strong>L'Échange Parfait</strong> (deux numéros échangés qui trouvent leur place) est un coup gratuit et offre un gros bonus de points !</li>
+                </ul>
+
+            </div>
+
+            <div class="col-md-6 language-column">
+                <h2>English Version</h2>
+
+                <h3>The Goal of the Game</h3>
+                <p>The goal is to place each colored number in its correct spot to restore a perfectly logical grid.</p>
+
+                <h3>The Binokub Principle</h3>
+                
+                <h5>The Bases (Columns & Colors)</h5>
+                <p>Every number belongs to a "Base" (a single digit from 1 to 9). The Base is calculated by summing the number's digits until only one digit remains.<br><em>Example: For the number 78, you do 7 + 8 = 15. Then, 1 + 5 = 6. The Base is 6.</em><br>A number's Base determines its final <strong>column</strong> in the grid. Its <strong>color</strong> is your clue!</p>
+                
+                <h5>The Suites (The Grid's Logic)</h5>
+                <p>The grid is not random. The numbers follow a dual mathematical rule:<br>
+                - <strong>Vertically:</strong> +9 when moving one cell down.<br>
+                - <strong>Horizontally:</strong> +1 when moving one cell to the right.</p>
+
+                <h3>How to Play</h3>
+                <ul>
+                    <li><strong>Select</strong> a number by clicking on it.</li>
+                    <li><strong>Click on a cell</strong> to move the number there. A move is only valid if the number is placed in its correct final position.</li>
+                    <li>If the destination cell is occupied by another number, the two numbers will <strong>swap</strong> places if the move is correct.</li>
+                </ul>
+                
+                <h3>Game Modes</h3>
+                
+                <h5>Survival Mode</h5>
+                <p>This is a test of <strong>precision</strong>.</p>
+                <ul>
+                    <li>The first mistake locks the starting cell 🔒 and costs you points.</li>
+                    <li>The second mistake ends the game (Game Over).</li>
+                </ul>
+
+                <h5>Limited Moves Mode</h5>
+                <p>This is a test of <strong>efficiency</strong>.</p>
+                <ul>
+                    <li>Solve the puzzle before your move budget runs out.</li>
+                    <li>A mistake costs you one move and points.</li>
+                    <li>The <strong>Perfect Swap</strong> (when two swapped numbers both land in their correct spots) is a free move and gives a large bonus!</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

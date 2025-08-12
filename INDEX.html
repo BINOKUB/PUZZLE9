@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binokub Puzzle 9</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css?v=1.0">
+</head>
+<body>
+
+    <div id="config-screen" class="container text-center my-4">
+        <h1>BINOKUB PUZZLE 9</h1>
+        <p class="lead">Configuration de la partie</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="my-3">
+                    <h5>Taille de la grille :</h5>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="gridSize" id="size4" value="4"><label class="form-check-label" for="size4">4x4</label></div>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="gridSize" id="size6" value="6"><label class="form-check-label" for="size6">6x6</label></div>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="gridSize" id="size9" value="9" checked><label class="form-check-label" for="size9">9x9</label></div>
+                </div>
+                <div class="my-3">
+                    <h5>Niveau de difficulté :</h5>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="difficulty" id="diff-easy" value="Facile"><label class="form-check-label" for="diff-easy">Facile</label></div>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="difficulty" id="diff-medium" value="Moyen" checked><label class="form-check-label" for="diff-medium">Moyen</label></div>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="difficulty" id="diff-hard" value="Difficile"><label class="form-check-label" for="diff-hard">Difficile</label></div>
+                </div>
+                <div class="my-3">
+                    <h5>Mode de jeu :</h5>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="gameMode" id="mode-survival" value="SURVIE" checked><label class="form-check-label" for="mode-survival">Survie</label></div>
+                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="gameMode" id="mode-limited" value="COUPS_LIMITES"><label class="form-check-label" for="mode-limited">Coups Limités</label></div>
+                </div>
+            </div>
+        </div>
+        <button id="start-btn" class="btn btn-primary btn-lg mt-3">Commencer</button>
+
+<div color:red; text-decorationLnone; background-color:#f0f0f0;><A HREF="aide.html">Aide</a></div>
+    </div>
+
+    <div id="game-screen" class="container text-center my-4 hidden">
+        <h1 id="game-title">BINOKUB PUZZLE 9</h1>
+        <h2 id="game-mode-display" class="fs-4 text-secondary"></h2>
+        <div id="game-info" class="row my-3 fs-5">
+            <div id="info-left-container" class="col text-start"></div>
+            <div id="info-right-container" class="col text-end"></div>
+        </div>
+        <div id="game-grid" class="mx-auto"></div>
+        <p id="info-text" class="text-muted mt-3"></p>
+        <div id="game-controls" class="d-grid gap-2 col-lg-6 col-md-8 mx-auto mt-3">
+            <div class="row g-2">
+                <div class="col"><button id="menu-btn" class="btn btn-secondary w-100">Menu</button></div>
+                <div class="col"><button id="solution-btn" class="btn btn-secondary w-100">Solution</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=1.0"></script>
+</body>
+</html>
