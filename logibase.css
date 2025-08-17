@@ -1,0 +1,97 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1rem 0; /* Ajoute un peu d'espace en haut et en bas sur mobile */
+    font-family: sans-serif;
+    background-color: #f8f9fa;
+}
+
+#config-container, #game-container {
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+}
+
+#game-grid {
+    display: inline-grid;
+    grid-template-columns: repeat(9, 45px);
+    gap: 3px;
+    background-color: #343a40;
+    padding: 3px;
+    border-radius: 8px;
+}
+
+.grid-cell {
+    width: 45px;
+    height: 45px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+}
+
+.grid-cell:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.grid-cell.selected {
+    border-color: #0d6efd;
+    transform: scale(1.1);
+}
+
+.played-correct-1 { border-bottom: 5px solid #D32F2F; }
+.played-correct-2 { border-bottom: 5px solid #1976D2; }
+.played-correct-3 { border-bottom: 5px solid #388E3C; }
+.played-correct-4 { border-bottom: 5px solid #7B1FA2; }
+.played-correct-5 { border-bottom: 5px solid #F57C00; }
+.played-correct-6 { border-bottom: 5px solid #0097A7; }
+.played-correct-7 { border-bottom: 5px solid #C2185B; }
+.played-correct-8 { border-bottom: 5px solid #6D4C41; }
+.played-correct-9 { border-bottom: 5px solid #455A64; }
+
+.grid-cell.played-error::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background-color: #dc3545;
+    border-radius: 50%;
+    border: 1px solid white;
+}
+
+#base-counters {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.base-counter {
+    border: 2px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #e9ecef;
+    transition: all 0.2s ease-in-out;
+}
+
+.base-counter:hover {
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
