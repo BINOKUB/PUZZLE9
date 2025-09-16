@@ -1,0 +1,5 @@
+{
+  "name": "Binokub Guru 1.8",
+  "description": "A deductive puzzle game based on arithmetic sequences. Players rotate cubes to find the correct number that satisfies the sequence rules for the entire grid.",
+  "requestFramePermissions": []
+}
