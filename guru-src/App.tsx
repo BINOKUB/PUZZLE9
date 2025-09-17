@@ -34,6 +34,7 @@ const App: React.FC = () => {
   const [hasWon, setHasWon] = useState(false);
   const [isHelpVisible, setIsHelpVisible] = useState(false);
   const [language, setLanguage] = useState<Language>(getBrowserLanguage());
+  const [showErrorLines, setShowErrorLines] = useState(false);
   
   const [themeKey, setThemeKey] = useState<string>(() => {
     return localStorage.getItem('binokubTheme') || 'guruBlue';
@@ -71,8 +72,18 @@ const App: React.FC = () => {
   }, [gridState, puzzleData]);
 
   useEffect(() => {
-    if (checkWinCondition()) {
-      setHasWon(true);
+    const isGridFullyRevealed = gridState.every(row => row.every(cube => cube.isRevealed));
+
+    if (isGridFullyRevealed) {
+      if (checkWinCondition()) {
+        setHasWon(true);
+        setShowErrorLines(false);
+      } else {
+        setHasWon(false);
+        setShowErrorLines(true);
+      }
+    } else {
+      setShowErrorLines(false);
     }
   }, [gridState, checkWinCondition]);
 
@@ -113,6 +124,7 @@ const App: React.FC = () => {
           gridState={gridState}
           onCubeClick={handleCubeClick}
           theme={currentTheme}
+          showErrorLines={showErrorLines}
         />
       </main>
 
