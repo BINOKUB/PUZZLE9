@@ -211,7 +211,7 @@ const App: React.FC = () => {
         </div>
       )}
       <div className="fixed bottom-4 right-4 text-xs text-slate-400 opacity-50 select-none">
-        REV 1.8
+        REV 1.10
       </div>
     </div>
   );
