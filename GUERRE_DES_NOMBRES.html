@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GUERRE DES NOMBRES (Gold Edition)</title>
+    <title>GUERRE DES NOMBRES (V25 Racing Dog)</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -14,6 +14,7 @@
             --accent-hint: #00ffff;
             --accent-nuke: #ff00ff;
             --accent-time: #e67e22;
+            --accent-dog: #ff9f43; /* Couleur du chien */
         }
 
         body {
@@ -143,7 +144,19 @@
 
         .tile:active { background-color: #555; }
         .tile.selected { background-color: var(--tile-selected); color: #000; transform: scale(0.95); box-shadow: 0 0 10px rgba(212, 175, 55, 0.8); z-index: 10; }
-        .tile.nine { color: #ff9f43; border: 1px solid #ff9f43; }
+        
+        /* --- NOUVEAU STYLE POUR LE CHIEN (LE 9) --- */
+        .tile.nine {
+            color: transparent; /* On cache le chiffre */
+            border: 2px solid var(--accent-dog);
+            /* Image SVG du chien encodée directement ici */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23ff9f43' d='M88.5,35.7c-1.9-2.1-4.8-3.1-7.7-2.8c-0.9-2.2-2.7-3.9-5-4.6c-2.4-0.7-5,0-6.9,1.8l-9.1,8.9H48.2l-9.4-9.2 c-1.9-1.8-4.5-2.5-7.1-1.9c-2.6,0.6-4.7,2.5-5.6,4.9c-3-0.5-6.1,0.3-8.3,2.2c-3,2.6-3.7,7.1-1.7,10.5l4.2,7.3H15c-2.8,0-5,2.2-5,5 s2.2,5,5,5h6.1l4.6,8H23c-2.8,0-5,2.2-5,5s2.2,5,5,5h20c2.8,0,5-2.2,5-5s-2.2-5-5-5h-4.1l-4.6-8h27.8l-4.6,8H55c-2.8,0-5,2.2-5,5 s2.2,5,5,5h20c2.8,0,5-2.2,5-5s-2.2-5-5-5h-4.1l4.6-8h6.1c2.8,0,5-2.2,5-5s-2.2-5-5-5h-4.9l4.6-8C92.5,42.6,91.6,38.5,88.5,35.7z M29.3,36.3L37,43.8h6.1l-5.7-9.9C36.1,34.8,33.8,35.4,29.3,36.3z M76.3,33.9l-5.7,9.9h6.1l7.7-7.6C81.4,35.4,79,34.7,76.3,33.9z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 80%; /* Taille du chien dans la case */
+            box-shadow: inset 0 0 10px var(--accent-dog);
+        }
+
         .tile.empty { background: transparent; border: 1px dashed #333; }
         
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(0); opacity: 0;} }
@@ -188,7 +201,7 @@
         <div id="game-grid"></div>
         <div id="loading-overlay">
             <div class="spinner"></div>
-            <div id="loading-text">Analyse Tactique...</div>
+            <div id="loading-text">Mise en place des coureurs...</div>
         </div>
         <div id="message-overlay">
             <h2 id="msg-title">TITRE</h2>
@@ -205,7 +218,6 @@
     </div>
 
     <script>
-        // --- MOTEUR AUDIO (Web Audio API) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         const SoundFX = {
@@ -230,14 +242,11 @@
                 const gain = audioCtx.createGain();
                 osc1.connect(gain); osc2.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc1.type = 'sine'; osc2.type = 'triangle';
-                osc1.frequency.setValueAtTime(523.25, now); // Do
-                osc2.frequency.setValueAtTime(659.25, now + 0.1); // Mi
-                
+                osc1.frequency.setValueAtTime(523.25, now); 
+                osc2.frequency.setValueAtTime(659.25, now + 0.1); 
                 gain.gain.setValueAtTime(0.1, now);
                 gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                
                 osc1.start(now); osc1.stop(now + 0.3);
                 osc2.start(now + 0.1); osc2.stop(now + 0.3);
             },
@@ -279,7 +288,6 @@
             nuke: () => {
                 if(audioCtx.state === 'suspended') audioCtx.resume();
                 const now = audioCtx.currentTime;
-                // BOOM
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
@@ -289,9 +297,7 @@
                 gain.gain.setValueAtTime(0.5, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
                 osc.start(now); osc.stop(now + 1);
-                
-                // FANFARE
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C E G C
+                const notes = [523.25, 659.25, 783.99, 1046.50]; 
                 notes.forEach((freq, i) => {
                     const o = audioCtx.createOscillator();
                     const g = audioCtx.createGain();
@@ -305,7 +311,7 @@
             }
         };
 
-        const CHRONO_START = 120; // 2 MINUTES
+        const CHRONO_START = 120; 
         const GRID_SIZE = 8;
         const INITIAL_RESERVE = 40; 
         const INITIAL_NINES = 4;
@@ -399,7 +405,7 @@
             timerInterval = setInterval(() => {
                 timeLeft--;
                 updateTimerDisplay();
-                if(timeLeft <= 10 && timeLeft > 0) SoundFX.alert(); // Son Alerte
+                if(timeLeft <= 10 && timeLeft > 0) SoundFX.alert();
                 if (timeLeft <= 0) triggerTimeGameOver();
             }, 1000);
         }
@@ -417,7 +423,7 @@
         function triggerTimeGameOver() {
             stopTimer();
             SoundFX.lose();
-            showOverlay("TEMPS ÉCOULÉ", "<p>Trop lent !<br>Score Final: " + score + "</p>", "lose-msg", false);
+            showOverlay("TEMPS ÉCOULÉ", "<p>Les chiens n'ont pas fini la course.<br>Score Final: " + score + "</p>", "lose-msg", false);
         }
 
         function generateWinnableLevel() {
@@ -554,8 +560,9 @@
 
         function updateVisual(cell) {
             cell.el.className = 'tile'; 
+            // Changement V25 : Si c'est un 9, on n'écrit pas le texte, le CSS gère l'image
             if (cell.val === 9) {
-                cell.el.innerText = '9';
+                cell.el.innerText = ''; 
                 cell.el.classList.add('nine');
             } else if (cell.val > 0) {
                 cell.el.innerText = cell.val;
@@ -585,7 +592,7 @@
 
         function triggerNukeSequence(cell) {
             stopTimer(); 
-            SoundFX.nuke(); // SON NUKE
+            SoundFX.nuke();
             gridElement.classList.add('nuke-active');
             cell.el.classList.add('anim-nuke');
             setTimeout(() => {
@@ -601,20 +608,18 @@
                 scoreElement.innerText = score;
                 gridElement.classList.remove('nuke-active');
                 setTimeout(() => {
-                     showOverlay("VICTOIRE NUCLÉAIRE !", "<p>Le 9 a touché le fond.<br>Zone totalement nettoyée !<br>Score: " + score + "</p>", "win-msg", false);
+                     showOverlay("VICTOIRE !", "<p>Le chien a franchi la ligne !<br>Zone totalement nettoyée !<br>Score: " + score + "</p>", "win-msg", false);
                 }, 800);
             }, 800);
         }
 
         function handleTileClick(r, c) {
-            // Activer Audio Context au premier click (hack browser policy)
             if(audioCtx.state === 'suspended') audioCtx.resume();
-            
             document.querySelectorAll('.anim-hint').forEach(el => el.classList.remove('anim-hint'));
             if (isProcessing) return;
             if (grid[r][c].val === 0) return;
 
-            SoundFX.click(); // SON CLIC
+            SoundFX.click();
 
             if (!selectedTile) {
                 selectedTile = { r, c };
@@ -670,7 +675,7 @@
             else if (sum === 9) isMatch = true;
 
             if (isMatch) {
-                SoundFX.match(); // SON MATCH
+                SoundFX.match();
                 isProcessing = true;
                 cellA.el.classList.remove('selected');
                 selectedTile = null;
@@ -709,7 +714,7 @@
 
         function shuffleGrid() {
             if (shuffleLeft <= 0 || isProcessing) return;
-            SoundFX.shuffle(); // SON SHUFFLE
+            SoundFX.shuffle();
             shuffleLeft--;
             shuffleCountSpan.innerText = shuffleLeft;
             if (shuffleLeft === 0) shuffleBtn.disabled = true;
@@ -768,7 +773,7 @@
             }
             if (isEmpty && reserve === 0) {
                 stopTimer();
-                SoundFX.nuke(); // Victoire
+                SoundFX.nuke();
                 showOverlay("VICTOIRE !", "<p>Grille nettoyée.<br>Score: " + score + "</p>", "win-msg", false);
                 return;
             }
@@ -847,13 +852,13 @@
         function showRules() {
             let rulesHTML = `
                 <ul>
-                    <li><strong>BUT :</strong> Faire descendre UN SEUL "9" en bas (Ligne 8).</li>
-                    <li><strong>MATCH :</strong> Somme = <strong>9</strong> (Ortho + Diagonales).</li>
-                    <li><strong>TEMPS :</strong> 2 Minutes ou c'est perdu !</li>
+                    <li><strong>BUT :</strong> Faire descendre UN SEUL coureur (chien) en bas (Ligne 8).</li>
+                    <li><strong>MATCH :</strong> Somme des chiffres = <strong>9</strong> (Ortho + Diagonales).</li>
+                    <li><strong>TEMPS :</strong> 2 Minutes pour finir la course !</li>
                     <li><strong>BRASSAGE :</strong> 1 seule chance.</li>
                 </ul>
             `;
-            showOverlay("RÈGLES V24", rulesHTML, "info-msg", false);
+            showOverlay("RÈGLES V25", rulesHTML, "info-msg", false);
         }
 
         function findAndShowHint() {
