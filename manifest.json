@@ -1,0 +1,15 @@
+{
+  "name": "Melody Pro Harmony",
+  "short_name": "MelodyPro",
+  "start_url": "./MelodyPro_Final.html",
+  "display": "standalone",
+  "background_color": "#050508",
+  "theme_color": "#050508",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
