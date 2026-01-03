@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEXUS HARMONIQUE - Responsive</title>
+    <title>NEXUS HARMONIQUE - Perfect Center</title>
     <style>
         :root {
             --bg-color: #050508;
-            --ring-color: rgba(255, 255, 255, 0.1);
+            --ring-color: rgba(255, 255, 255, 0.15);
             --text-primary: #fff;
-            --highlight-main: #00f3ff; /* Cyan Neon */
-            --highlight-rel: #ff00ff;  /* Magenta Neon */
+            --highlight-main: #00f3ff; /* Cyan */
+            --highlight-rel: #ff00ff;  /* Magenta */
             --glow-strength: 15px;
         }
 
@@ -20,18 +20,21 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; overflow: hidden;
-            touch-action: manipulation; /* Améliore le tactile */
+            touch-action: none; /* Bloque tout scroll/zoom parasite */
         }
 
         h1 {
             font-weight: 300; letter-spacing: 4px; text-transform: uppercase;
-            margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.3);
-            font-size: 24px; text-align: center;
+            margin-bottom: 0; margin-top: 20px; 
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            font-size: 20px; text-align: center;
+            position: absolute; top: 20px; width: 100%; z-index: 100;
         }
 
-        /* CONTENEUR RESPONSIVE */
+        /* CONTENEUR PRINCIPAL FLUIDE */
         #nexus-container {
-            width: 100%;
+            position: relative;
+            width: 100vw;
             height: 100vh;
             display: flex;
             align-items: center;
@@ -39,23 +42,25 @@
             overflow: hidden;
         }
 
+        /* LA CIBLE DE SCALE (600x600 de base) */
         #harmonic-nexus {
             position: relative; 
-            width: 600px; height: 600px; /* Taille de base fixe pour les calculs */
-            display: flex; align-items: center; justify-content: center;
-            /* MAGIE RESPONSIVE : Si l'écran est petit, on dézoome */
+            width: 600px; height: 600px; 
+            /* On ne met pas de scale ici, on le gère en JS */
             transform-origin: center center;
+            flex-shrink: 0; /* Empêche l'écrasement */
         }
         
-        /* Media Query pour Mobile : on réduit l'échelle si l'écran < 620px */
-        @media (max-width: 620px) {
-            #harmonic-nexus {
-                transform: scale(0.55); /* Réduit à 55% de la taille */
-            }
-            h1 { font-size: 18px; margin-top: 20px; }
+        /* CORRECTION DU CENTRAGE DES ANNEAUX */
+        .ring { 
+            position: absolute; 
+            border-radius: 50%; 
+            border: 1px solid var(--ring-color); 
+            pointer-events: none;
+            /* MAGIE DU CENTRAGE : */
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
         }
-
-        .ring { position: absolute; border-radius: 50%; border: 1px solid var(--ring-color); pointer-events: none; }
         .ring-outer { width: 550px; height: 550px; }
         .ring-inner { width: 350px; height: 350px; border-style: dashed; opacity: 0.5; }
 
@@ -63,14 +68,14 @@
             position: absolute; display: flex; align-items: center; justify-content: center;
             width: 60px; height: 60px; border-radius: 50%; background: var(--bg-color);
             border: 2px solid #333; font-weight: bold; cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10;
             user-select: none; -webkit-tap-highlight-color: transparent;
         }
 
         .major-node { font-size: 1.2rem; }
         .minor-node { font-size: 0.9rem; color: #aaa; border-color: #222; }
 
-        /* Interaction */
+        /* ETATS ACTIFS */
         .active-primary {
             border-color: var(--highlight-main) !important;
             color: var(--highlight-main) !important;
@@ -92,8 +97,12 @@
             transform: scale(1.1);
         }
 
+        /* CENTRE */
         #center-hub {
-            position: absolute; width: 120px; height: 120px; background: #000;
+            position: absolute; 
+            /* Centrage Absolu du Hub */
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 120px; height: 120px; background: #000;
             border-radius: 50%; border: 2px solid #333;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.8); z-index: 5;
@@ -120,6 +129,7 @@
     </div>
 
     <script>
+        const container = document.getElementById('nexus-container');
         const nexus = document.getElementById('harmonic-nexus');
         const hubKey = document.getElementById('hub-key');
         const hubDesc = document.getElementById('hub-desc');
@@ -134,6 +144,7 @@
         const radiusOuter = 275;
         const radiusInner = 175;
 
+        // --- 1. INITIALISATION DES NOEUDS ---
         cycleData.forEach((data, i) => {
             const angleRad = ((i * 30) - 90) * (Math.PI / 180);
             createNode(data.maj, i, 'major-node', radiusOuter, angleRad, 'maj');
@@ -147,22 +158,47 @@
             node.dataset.index = index;
             node.dataset.type = type;
 
+            // Calcul centré sur 300, 300
             const x = 300 + radius * Math.cos(rad) - 30; 
             const y = 300 + radius * Math.sin(rad) - 30;
             node.style.left = `${x}px`;
             node.style.top = `${y}px`;
 
-            // Ajout du support TACTILE (Touchstart) pour le mobile
+            // EVENTS
             node.addEventListener('mouseenter', () => engageHarmony(index, type));
             node.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Empêche le zoom double-tap
+                e.preventDefault(); 
                 engageHarmony(index, type);
-            });
+            }, {passive: false});
             
             nexus.appendChild(node);
         }
 
-        // Ajout d'un écouteur global pour "éteindre" quand on touche ailleurs sur mobile
+        // --- 2. LOGIQUE DE REDIMENSIONNEMENT INTELLIGENT ---
+        function resizeNexus() {
+            // On veut que le cercle (600px) rentre dans l'écran avec une marge
+            const margin = 40; 
+            const availableWidth = window.innerWidth - margin;
+            const availableHeight = window.innerHeight - 100; // Place pour le titre
+
+            // On cherche le facteur d'échelle le plus petit
+            const scaleW = availableWidth / 600;
+            const scaleH = availableHeight / 600;
+            let scale = Math.min(scaleW, scaleH);
+
+            // On ne grossit pas plus que 1 (sur desktop)
+            if (scale > 1) scale = 1;
+
+            // Application du scale
+            nexus.style.transform = `scale(${scale})`;
+        }
+
+        // Appel au chargement et au redimensionnement
+        window.addEventListener('resize', resizeNexus);
+        window.addEventListener('load', resizeNexus);
+        resizeNexus(); // Appel immédiat
+
+        // --- 3. LOGIQUE HARMONIQUE ---
         document.body.addEventListener('touchstart', (e) => {
             if(!e.target.classList.contains('note-node')) resetHarmony();
         });
