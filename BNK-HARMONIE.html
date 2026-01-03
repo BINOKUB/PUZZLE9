@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS HARMONIQUE - Cycle des Quintes Interactif</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEXUS HARMONIQUE - Responsive</title>
     <style>
         :root {
             --bg-color: #050508;
@@ -20,16 +20,39 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; overflow: hidden;
+            touch-action: manipulation; /* Améliore le tactile */
         }
 
         h1 {
             font-weight: 300; letter-spacing: 4px; text-transform: uppercase;
-            margin-bottom: 40px; text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            font-size: 24px; text-align: center;
+        }
+
+        /* CONTENEUR RESPONSIVE */
+        #nexus-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
         #harmonic-nexus {
-            position: relative; width: 600px; height: 600px;
+            position: relative; 
+            width: 600px; height: 600px; /* Taille de base fixe pour les calculs */
             display: flex; align-items: center; justify-content: center;
+            /* MAGIE RESPONSIVE : Si l'écran est petit, on dézoome */
+            transform-origin: center center;
+        }
+        
+        /* Media Query pour Mobile : on réduit l'échelle si l'écran < 620px */
+        @media (max-width: 620px) {
+            #harmonic-nexus {
+                transform: scale(0.55); /* Réduit à 55% de la taille */
+            }
+            h1 { font-size: 18px; margin-top: 20px; }
         }
 
         .ring { position: absolute; border-radius: 50%; border: 1px solid var(--ring-color); pointer-events: none; }
@@ -41,6 +64,7 @@
             width: 60px; height: 60px; border-radius: 50%; background: var(--bg-color);
             border: 2px solid #333; font-weight: bold; cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10;
+            user-select: none; -webkit-tap-highlight-color: transparent;
         }
 
         .major-node { font-size: 1.2rem; }
@@ -54,7 +78,6 @@
             transform: scale(1.2); z-index: 20;
         }
         
-        /* Quand on sélectionne un mineur, il devient Magenta */
         .active-primary-min {
             border-color: var(--highlight-rel) !important;
             color: var(--highlight-rel) !important;
@@ -84,13 +107,15 @@
 
     <h1>NEXUS HARMONIQUE</h1>
 
-    <div id="harmonic-nexus">
-        <div class="ring ring-outer"></div>
-        <div class="ring ring-inner"></div>
-        
-        <div id="center-hub">
-            <h2 id="hub-key">--</h2>
-            <span id="hub-desc">Survolez une clé</span>
+    <div id="nexus-container">
+        <div id="harmonic-nexus">
+            <div class="ring ring-outer"></div>
+            <div class="ring ring-inner"></div>
+            
+            <div id="center-hub">
+                <h2 id="hub-key">--</h2>
+                <span id="hub-desc">Touchez une clé</span>
+            </div>
         </div>
     </div>
 
@@ -111,7 +136,6 @@
 
         cycleData.forEach((data, i) => {
             const angleRad = ((i * 30) - 90) * (Math.PI / 180);
-            // On passe 'maj' ou 'min' comme dernier argument pour savoir qui est qui
             createNode(data.maj, i, 'major-node', radiusOuter, angleRad, 'maj');
             createNode(data.min, i, 'minor-node', radiusInner, angleRad, 'min');
         });
@@ -121,19 +145,28 @@
             node.classList.add('note-node', typeClass);
             node.innerText = text;
             node.dataset.index = index;
-            node.dataset.type = type; // On stocke le type (maj/min)
+            node.dataset.type = type;
 
             const x = 300 + radius * Math.cos(rad) - 30; 
             const y = 300 + radius * Math.sin(rad) - 30;
             node.style.left = `${x}px`;
             node.style.top = `${y}px`;
 
-            // On passe l'index ET le type à la fonction d'engagement
+            // Ajout du support TACTILE (Touchstart) pour le mobile
             node.addEventListener('mouseenter', () => engageHarmony(index, type));
-            node.addEventListener('mouseleave', resetHarmony);
+            node.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Empêche le zoom double-tap
+                engageHarmony(index, type);
+            });
             
             nexus.appendChild(node);
         }
+
+        // Ajout d'un écouteur global pour "éteindre" quand on touche ailleurs sur mobile
+        document.body.addEventListener('touchstart', (e) => {
+            if(!e.target.classList.contains('note-node')) resetHarmony();
+        });
+        nexus.addEventListener('mouseleave', resetHarmony);
 
         function engageHarmony(selectedIndex, type) {
             resetHarmony();
@@ -141,15 +174,14 @@
             const nodes = document.querySelectorAll('.note-node');
             const selectedData = cycleData[selectedIndex];
 
-            // LOGIQUE CORRIGÉE : Affichage contextuel
             if (type === 'maj') {
                 hubKey.innerText = selectedData.maj;
                 hubDesc.innerText = `Relatif: ${selectedData.min}`;
-                hubKey.style.color = "var(--highlight-main)"; // Cyan
+                hubKey.style.color = "var(--highlight-main)";
             } else {
                 hubKey.innerText = selectedData.min;
                 hubDesc.innerText = `Relatif: ${selectedData.maj}`;
-                hubKey.style.color = "var(--highlight-rel)"; // Magenta
+                hubKey.style.color = "var(--highlight-rel)";
             }
 
             const prevIndex = (selectedIndex - 1 + 12) % 12;
@@ -159,16 +191,12 @@
                 const idx = parseInt(node.dataset.index);
                 const nodeType = node.dataset.type;
                 
-                // 1. L'Accord survolé
                 if (idx === selectedIndex && nodeType === type) {
-                    // Si c'est un mineur, on met la couleur magenta, sinon cyan
                     node.classList.add(type === 'min' ? 'active-primary-min' : 'active-primary');
                 }
-                // 2. Le relatif direct (l'autre du même index)
                 else if (idx === selectedIndex && nodeType !== type) {
                     node.classList.add('active-secondary');
                 }
-                // 3. Les voisins harmoniques
                 else if (idx === prevIndex || idx === nextIndex) {
                     node.classList.add('active-secondary');
                 }
@@ -180,10 +208,9 @@
                 n.classList.remove('active-primary', 'active-primary-min', 'active-secondary');
             });
             hubKey.innerText = "--";
-            hubDesc.innerText = "Survolez une clé";
+            hubDesc.innerText = "Touchez une clé";
             hubKey.style.color = "#fff";
         }
-
     </script>
 </body>
 </html>
