@@ -1,254 +1,470 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MELODY BASIC - Perfect Center</title>
-    <style>
+    <title>MELODY PRO | Harmonie & Théorie</title>
+
+<style>
         :root {
             --bg-color: #050508;
-            --ring-color: rgba(255, 255, 255, 0.15);
+            --panel-bg: #0f0f12;
+            --ring-color: rgba(255, 255, 255, 0.1);
             --text-primary: #fff;
-            --highlight-main: #00f3ff; /* Cyan */
-            --highlight-rel: #ff00ff;  /* Magenta */
+            --text-muted: #888;
+            --highlight-focus: #00f3ff;
+            --highlight-rel: #ff00ff;
             --glow-strength: 15px;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0; overflow: hidden;
-            touch-action: none; /* Bloque tout scroll/zoom parasite */
+            font-family: var(--font-main);
+            /* STRUCTURE FLEX VERTICALE : Le secret pour ne pas déborder */
+            display: flex; flex-direction: column; 
+            height: 100vh; margin: 0; overflow: hidden;
+            user-select: none; touch-action: none;
+        }
+
+        /* HEADER (Prend juste la place qu'il faut) */
+        header {
+            width: 100%; padding: 15px 10px; text-align: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            z-index: 10; flex-shrink: 0; /* Ne s'écrase pas */
         }
 
         h1 {
-            font-weight: 300; letter-spacing: 4px; text-transform: uppercase;
-            margin-bottom: 0; margin-top: 20px; 
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-            font-size: 20px; text-align: center;
-            position: absolute; top: 20px; width: 100%; z-index: 100;
+            font-weight: 300; letter-spacing: 6px; text-transform: uppercase;
+            margin: 0 0 10px 0; font-size: 18px;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
         }
 
-        /* CONTENEUR PRINCIPAL FLUIDE */
+        .complexity-selector { display: flex; justify-content: center; gap: 8px; }
+
+        .lvl-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid #333; color: #888;
+            padding: 8px 14px; border-radius: 4px; cursor: pointer;
+            font-size: 11px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .lvl-btn:hover { border-color: #666; color: #fff; }
+        .lvl-btn.active {
+            border-color: var(--highlight-focus); color: #000;
+            background: var(--highlight-focus);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+
+        /* NEXUS CONTAINER (Prend TOUT l'espace restant au milieu) */
         #nexus-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            flex-grow: 1; /* C'est ça qui remplit le vide entre header et footer */
+            width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            z-index: 1;
         }
 
-        /* LA CIBLE DE SCALE (600x600 de base) */
         #harmonic-nexus {
-            position: relative; 
-            width: 600px; height: 600px; 
-            /* On ne met pas de scale ici, on le gère en JS */
+            position: relative; width: 600px; height: 600px;
             transform-origin: center center;
-            flex-shrink: 0; /* Empêche l'écrasement */
+            flex-shrink: 0;
         }
-        
-        /* CORRECTION DU CENTRAGE DES ANNEAUX */
+
+        /* ANNEAUX ET NOEUDS */
         .ring { 
-            position: absolute; 
-            border-radius: 50%; 
+            position: absolute; border-radius: 50%; 
             border: 1px solid var(--ring-color); 
-            pointer-events: none;
-            /* MAGIE DU CENTRAGE : */
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            pointer-events: none; 
         }
         .ring-outer { width: 550px; height: 550px; }
-        .ring-inner { width: 350px; height: 350px; border-style: dashed; opacity: 0.5; }
+        .ring-inner { width: 350px; height: 350px; border-style: dashed; opacity: 0.3; }
 
         .note-node {
             position: absolute; display: flex; align-items: center; justify-content: center;
-            width: 60px; height: 60px; border-radius: 50%; background: var(--bg-color);
-            border: 2px solid #333; font-weight: bold; cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10;
-            user-select: none; -webkit-tap-highlight-color: transparent;
+            width: 64px; height: 64px; border-radius: 50%;
+            background: var(--bg-color); border: 2px solid #333;
+            font-weight: bold; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            z-index: 10; font-size: 13px; text-align: center; line-height: 1.1;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .major-node { font-size: 14px; }
+        .minor-node { font-size: 12px; color: #aaa; }
+
+        .active-focus {
+            border-color: var(--highlight-focus) !important; color: var(--highlight-focus) !important;
+            box-shadow: 0 0 var(--glow-strength) var(--highlight-focus), inset 0 0 15px rgba(0, 243, 255, 0.2);
+            transform: scale(1.2); z-index: 20; background: #000;
+        }
+        .active-neighbor {
+            border-color: var(--highlight-rel) !important; color: var(--highlight-rel) !important;
+            box-shadow: 0 0 calc(var(--glow-strength)*0.6) var(--highlight-rel);
+            transform: scale(1.05); z-index: 15;
+        }
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.6); opacity: 0; } }
+        .playing::after {
+            content: ''; position: absolute; top:0; left:0; width: 100%; height: 100%;
+            border-radius: 50%; border: 2px solid var(--highlight-focus);
+            animation: pulse-ring 0.5s ease-out;
         }
 
-        .major-node { font-size: 1.2rem; }
-        .minor-node { font-size: 0.9rem; color: #aaa; border-color: #222; }
-
-        /* ETATS ACTIFS */
-        .active-primary {
-            border-color: var(--highlight-main) !important;
-            color: var(--highlight-main) !important;
-            box-shadow: 0 0 var(--glow-strength) var(--highlight-main), inset 0 0 10px var(--highlight-main);
-            transform: scale(1.2); z-index: 20;
-        }
-        
-        .active-primary-min {
-            border-color: var(--highlight-rel) !important;
-            color: var(--highlight-rel) !important;
-            box-shadow: 0 0 var(--glow-strength) var(--highlight-rel), inset 0 0 10px var(--highlight-rel);
-            transform: scale(1.2); z-index: 20;
+        /* FOOTER (INFO PANEL) - Reste en bas, taille fixe */
+        #info-panel {
+            width: 100%; height: 160px;
+            background: var(--panel-bg);
+            border-top: 1px solid #333;
+            display: flex; flex-direction: column;
+            padding: 15px 20px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            z-index: 20; flex-shrink: 0; /* Ne s'écrase pas */
         }
 
-        .active-secondary {
-            border-color: #fff !important;
-            color: #fff !important;
-            box-shadow: 0 0 var(--glow-strength) rgba(255,255,255,0.5);
-            transform: scale(1.1);
+        .panel-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .chord-title { font-size: 28px; color: var(--highlight-focus); margin: 0; font-weight: 300; line-height: 1; }
+        .chord-subtitle { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .scales-scroll { overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); }
+        .scales-container { display: flex; gap: 10px; width: fit-content; margin: 0 auto; }
+        .scale-card {
+            background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 4px;
+            padding: 8px 12px; min-width: 150px; flex-shrink: 0;
         }
-
-        /* CENTRE */
-        #center-hub {
-            position: absolute; 
-            /* Centrage Absolu du Hub */
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 120px; height: 120px; background: #000;
-            border-radius: 50%; border: 2px solid #333;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.8); z-index: 5;
-        }
-        #hub-key { font-size: 2rem; font-weight: 700; margin: 0; color: #fff; }
-        #hub-desc { font-size: 0.8rem; color: #666; margin-top: 5px; }
-
+        .scale-name { color: var(--highlight-rel); font-size: 11px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .scale-notes { color: #ccc; font-size: 10px; font-family: 'Courier New', monospace; letter-spacing: -0.5px; }
     </style>
+
 </head>
 <body>
 
-    <h1>MELODY BASIC</h1>
+    <header>
+        <h1>MELODY PRO</h1>
+        <div class="complexity-selector">
+            <button class="lvl-btn active" onclick="setLevel(1)">Triades</button>
+            <button class="lvl-btn" onclick="setLevel(2)">7ème</button>
+            <button class="lvl-btn" onclick="setLevel(3)">Jazz Ext</button>
+        </div>
+    </header>
 
     <div id="nexus-container">
         <div id="harmonic-nexus">
             <div class="ring ring-outer"></div>
             <div class="ring ring-inner"></div>
-            
-            <div id="center-hub">
-                <h2 id="hub-key">--</h2>
-                <span id="hub-desc">Touchez une clé</span>
+            </div>
+    </div>
+
+    <div id="info-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="chord-title" id="panel-chord">--</h2>
+                <span class="chord-subtitle" id="panel-detail">SÉLECTIONNEZ UN ACCORD</span>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:10px; color:#555">COMPATIBILITÉ</div>
+                <div style="font-size:12px; color:#888">MODES & GAMMES</div>
+            </div>
+        </div>
+        <div class="scales-scroll">
+            <div class="scales-container" id="scales-list">
+                <div style="color:#444; font-size:12px; padding-top:5px">En attente...</div>
             </div>
         </div>
     </div>
 
     <script>
-        const container = document.getElementById('nexus-container');
-        const nexus = document.getElementById('harmonic-nexus');
-        const hubKey = document.getElementById('hub-key');
-        const hubDesc = document.getElementById('hub-desc');
-
-        const cycleData = [
-            { maj: "C",  min: "Am"  }, { maj: "G",  min: "Em"  }, { maj: "D",  min: "Bm"  },
-            { maj: "A",  min: "F#m" }, { maj: "E",  min: "C#m" }, { maj: "B",  min: "G#m" },
-            { maj: "F#", min: "D#m" }, { maj: "Db", min: "Bbm" }, { maj: "Ab", min: "Fm"  },
-            { maj: "Eb", min: "Cm"  }, { maj: "Bb", min: "Gm"  }, { maj: "F",  min: "Dm"  }
+        // --- DONNÉES MUSICALES FONDAMENTALES ---
+        
+        const NOTES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        
+        // Cycle des Quintes (Données Brutes)
+        const CYCLE = [
+            { note: "C",  chroma: 0,  rel: "Am",  relChroma: 9  },
+            { note: "G",  chroma: 7,  rel: "Em",  relChroma: 4  },
+            { note: "D",  chroma: 2,  rel: "Bm",  relChroma: 11 },
+            { note: "A",  chroma: 9,  rel: "F#m", relChroma: 6  },
+            { note: "E",  chroma: 4,  rel: "C#m", relChroma: 1  },
+            { note: "B",  chroma: 11, rel: "G#m", relChroma: 8  },
+            { note: "Gb", chroma: 6,  rel: "Ebm", relChroma: 3  },
+            { note: "Db", chroma: 1,  rel: "Bbm", relChroma: 10 },
+            { note: "Ab", chroma: 8,  rel: "Fm",  relChroma: 5  },
+            { note: "Eb", chroma: 3,  rel: "Cm",  relChroma: 0  },
+            { note: "Bb", chroma: 10, rel: "Gm",  relChroma: 7  },
+            { note: "F",  chroma: 5,  rel: "Dm",  relChroma: 2  }
         ];
 
+        // --- FORMULES D'ACCORDS (JAZZ & COMPLEXITÉ) ---
+        const CHORD_FORMULAS = {
+            1: { // Triades
+                maj: [0, 4, 7], labelM: "",
+                min: [0, 3, 7], labelm: "m" // "m" simple pour le niveau 1
+            },
+            2: { // 7èmes
+                maj: [0, 4, 7, 11], labelM: "maj7",
+                min: [0, 3, 7, 10], labelm: "m7"
+            },
+            3: { // JAZZ EXTENSIONS (Voicings Complexes)
+                // Maj13 (1-3-7-9-13) - On omet la 11ème qui frotte sur un majeur
+                maj: [0, 4, 11, 14, 21], labelM: "maj13",
+                // Min11 (1-b3-7-9-11) - Son très "So What" / Neo Soul
+                min: [0, 3, 10, 14, 17], labelm: "m11"
+            }
+        };
+
+        // --- FORMULES DE GAMMES ---
+        const SCALES = {
+            maj: [
+                { name: "Ionien (Majeur)", intervals: [0, 2, 4, 5, 7, 9, 11] },
+                { name: "Lydien", intervals: [0, 2, 4, 6, 7, 9, 11] },
+                { name: "Mixolydien", intervals: [0, 2, 4, 5, 7, 9, 10] },
+                { name: "Penta Majeure", intervals: [0, 2, 4, 7, 9] }
+            ],
+            min: [
+                { name: "Aeolien (Naturel)", intervals: [0, 2, 3, 5, 7, 8, 10] },
+                { name: "Dorien (Jazz)", intervals: [0, 2, 3, 5, 7, 9, 10] },
+                { name: "Phrygien", intervals: [0, 1, 3, 5, 7, 8, 10] },
+                { name: "Penta Mineure", intervals: [0, 3, 5, 7, 10] }
+            ]
+        };
+
+        // État Global
+        let currentLevel = 1;
+        let audioCtx = null;
+        let lockedNodeIndex = null; // Pour le panneau d'info
+
+        // --- MOTEUR AUDIO (WEB AUDIO API - SYNTHÉ JAZZ) ---
+        
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function getFrequency(noteIndex, octave) {
+            const baseFreq = 16.35; // C0
+            const totalSemitones = (octave * 12) + noteIndex;
+            return baseFreq * Math.pow(2, totalSemitones / 12);
+        }
+
+        function playChordSound(rootChroma, type) {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
+            
+            // Gain dynamique : plus il y a de notes, moins c'est fort pour éviter la saturation
+            const volume = 0.25 / Math.sqrt(formula.length); 
+            const masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+            masterGain.gain.setValueAtTime(volume, now);
+            masterGain.gain.exponentialRampToValueAtTime(0.001, now + 3.5); // Release long (Sustain de piano)
+
+            formula.forEach((interval, i) => {
+                const osc = audioCtx.createOscillator();
+                const noteIndex = (rootChroma + interval) % 12;
+                
+                // VOICING INTELLIGENT (Aération du son)
+                let octave = 4;
+                if (i === 0) octave = 3; // Basse solide
+                if (interval > 12) octave = 5; // Extensions (9/11/13) brillantes en haut
+                
+                osc.frequency.value = getFrequency(noteIndex, octave);
+                
+                // Synthèse : Triangle (corps) + Sine (pureté)
+                osc.type = i === 0 ? 'triangle' : 'sine'; 
+                
+                osc.connect(masterGain);
+                
+                // Effet Strumming (Léger décalage temporel comme sur un clavier/guitare)
+                const delay = i * 0.04; 
+                osc.start(now + delay);
+                osc.stop(now + 3.5);
+            });
+        }
+
+        // --- RENDU GRAPHIQUE ---
+
+        const nexus = document.getElementById('harmonic-nexus');
         const radiusOuter = 275;
         const radiusInner = 175;
 
-        // --- 1. INITIALISATION DES NOEUDS ---
-        cycleData.forEach((data, i) => {
-            const angleRad = ((i * 30) - 90) * (Math.PI / 180);
-            createNode(data.maj, i, 'major-node', radiusOuter, angleRad, 'maj');
-            createNode(data.min, i, 'minor-node', radiusInner, angleRad, 'min');
-        });
+        function renderNodes() {
+            // Nettoyage
+            const existingNodes = document.querySelectorAll('.note-node');
+            existingNodes.forEach(e => e.remove());
 
-        function createNode(text, index, typeClass, radius, rad, type) {
+            CYCLE.forEach((data, i) => {
+                const angleRad = ((i * 30) - 90) * (Math.PI / 180);
+                
+                // --- LOGIQUE D'ÉTIQUETTE (CORRECTIF DU BUG "mm") ---
+                // Niveau 1 : data.rel est déjà "Am", "Cm". On ajoute RIEN.
+                // Niveau 2/3 : On ajoute l'extension sans le 'm' (ex: "7" ou "11").
+                const extensionMin = currentLevel > 1 ? CHORD_FORMULAS[currentLevel].labelm.replace('m','') : '';
+                
+                const labelMaj = data.note + CHORD_FORMULAS[currentLevel].labelM;
+                const labelMin = data.rel + extensionMin;
+
+                // Création des nœuds
+                createNode(labelMaj, i, 'major-node', radiusOuter, angleRad, 'maj', data.chroma);
+                createNode(labelMin, i, 'minor-node', radiusInner, angleRad, 'min', data.relChroma);
+            });
+        }
+
+        function createNode(text, index, cssClass, radius, rad, type, chroma) {
             const node = document.createElement('div');
-            node.classList.add('note-node', typeClass);
+            node.className = `note-node ${cssClass}`;
             node.innerText = text;
             node.dataset.index = index;
             node.dataset.type = type;
+            node.dataset.chroma = chroma;
 
-            // Calcul centré sur 300, 300
-            const x = 300 + radius * Math.cos(rad) - 30; 
-            const y = 300 + radius * Math.sin(rad) - 30;
+            // Positionnement par rapport au centre (300,300)
+            const x = 300 + radius * Math.cos(rad) - 32; 
+            const y = 300 + radius * Math.sin(rad) - 32;
             node.style.left = `${x}px`;
             node.style.top = `${y}px`;
 
             // EVENTS
-            node.addEventListener('mouseenter', () => engageHarmony(index, type));
+            node.onmouseenter = () => highlightNetwork(index, type);
+            node.onclick = () => activateChord(index, type, chroma, text, node);
+            // Support Touch pour mobile
             node.addEventListener('touchstart', (e) => {
-                e.preventDefault(); 
-                engageHarmony(index, type);
+                e.preventDefault();
+                activateChord(index, type, chroma, text, node);
             }, {passive: false});
             
             nexus.appendChild(node);
         }
 
-        // --- 2. LOGIQUE DE REDIMENSIONNEMENT INTELLIGENT ---
-        function resizeNexus() {
-            // On veut que le cercle (600px) rentre dans l'écran avec une marge
-            const margin = 40; 
-            const availableWidth = window.innerWidth - margin;
-            const availableHeight = window.innerHeight - 100; // Place pour le titre
+        // --- INTERACTIONS ---
 
-            // On cherche le facteur d'échelle le plus petit
-            const scaleW = availableWidth / 600;
-            const scaleH = availableHeight / 600;
-            let scale = Math.min(scaleW, scaleH);
+        function activateChord(index, type, chroma, text, nodeElement) {
+            // 1. Son
+            playChordSound(chroma, type);
+            
+            // 2. Visuel "Playing"
+            nodeElement.classList.remove('playing');
+            void nodeElement.offsetWidth; // Reset CSS animation
+            nodeElement.classList.add('playing');
 
-            // On ne grossit pas plus que 1 (sur desktop)
-            if (scale > 1) scale = 1;
-
-            // Application du scale
-            nexus.style.transform = `scale(${scale})`;
+            // 3. Verrouillage Panneau
+            lockedNodeIndex = index;
+            highlightNetwork(index, type); // Force le highlight
+            updatePanel(text, chroma, type);
         }
 
-        // Appel au chargement et au redimensionnement
-        window.addEventListener('resize', resizeNexus);
-        window.addEventListener('load', resizeNexus);
-        resizeNexus(); // Appel immédiat
+        function highlightNetwork(index, type) {
+            // Reset visuel
+            document.querySelectorAll('.note-node').forEach(n => {
+                n.classList.remove('active-focus', 'active-neighbor');
+            });
 
-        // --- 3. LOGIQUE HARMONIQUE ---
-        document.body.addEventListener('touchstart', (e) => {
-            if(!e.target.classList.contains('note-node')) resetHarmony();
-        });
-        nexus.addEventListener('mouseleave', resetHarmony);
-
-        function engageHarmony(selectedIndex, type) {
-            resetHarmony();
-            
             const nodes = document.querySelectorAll('.note-node');
-            const selectedData = cycleData[selectedIndex];
-
-            if (type === 'maj') {
-                hubKey.innerText = selectedData.maj;
-                hubDesc.innerText = `Relatif: ${selectedData.min}`;
-                hubKey.style.color = "var(--highlight-main)";
-            } else {
-                hubKey.innerText = selectedData.min;
-                hubDesc.innerText = `Relatif: ${selectedData.maj}`;
-                hubKey.style.color = "var(--highlight-rel)";
-            }
-
-            const prevIndex = (selectedIndex - 1 + 12) % 12;
-            const nextIndex = (selectedIndex + 1) % 12;
+            const prev = (index - 1 + 12) % 12;
+            const next = (index + 1) % 12;
 
             nodes.forEach(node => {
                 const idx = parseInt(node.dataset.index);
-                const nodeType = node.dataset.type;
-                
-                if (idx === selectedIndex && nodeType === type) {
-                    node.classList.add(type === 'min' ? 'active-primary-min' : 'active-primary');
+                const nType = node.dataset.type;
+
+                // Cible (Focus Cyan)
+                if (idx === index && nType === type) {
+                    node.classList.add('active-focus');
                 }
-                else if (idx === selectedIndex && nodeType !== type) {
-                    node.classList.add('active-secondary');
-                }
-                else if (idx === prevIndex || idx === nextIndex) {
-                    node.classList.add('active-secondary');
+                // Voisins Harmoniques (Magenta) : Relatif, Dominante, Sous-Dominante
+                else if (
+                    (idx === index && nType !== type) || 
+                    (idx === prev) || 
+                    (idx === next)
+                ) {
+                    node.classList.add('active-neighbor');
                 }
             });
         }
 
-        function resetHarmony() {
-            document.querySelectorAll('.note-node').forEach(n => {
-                n.classList.remove('active-primary', 'active-primary-min', 'active-secondary');
+        function updatePanel(chordName, chroma, type) {
+            document.getElementById('panel-chord').innerText = chordName;
+            
+            // Description selon niveau
+            let desc = type === 'maj' ? "Accord Majeur" : "Accord Mineur";
+            if(currentLevel === 2) desc += " 7ème";
+            if(currentLevel === 3) desc += type === 'maj' ? " Extension 13ème (Jazz)" : " Extension 11ème (Jazz)";
+            
+            document.getElementById('panel-detail').innerText = desc;
+
+            // Calculateur de Gammes
+            const container = document.getElementById('scales-list');
+            container.innerHTML = '';
+            
+            const scaleTemplates = type === 'maj' ? SCALES.maj : SCALES.min;
+            
+            scaleTemplates.forEach(template => {
+                // Algorithme : On prend le Chroma de base et on ajoute les intervalles
+                const notesList = template.intervals.map(interval => {
+                    const noteIdx = (chroma + interval) % 12;
+                    return NOTES[noteIdx];
+                }).join(" - ");
+
+                const card = document.createElement('div');
+                card.className = 'scale-card';
+                card.innerHTML = `
+                    <div class="scale-name">${template.name}</div>
+                    <div class="scale-notes">${notesList}</div>
+                `;
+                container.appendChild(card);
             });
-            hubKey.innerText = "--";
-            hubDesc.innerText = "Touchez une clé";
-            hubKey.style.color = "#fff";
         }
+
+        // --- RESPONSIVE SCALE & INIT ---
+
+        function setLevel(lvl) {
+            currentLevel = lvl;
+            document.querySelectorAll('.lvl-btn').forEach((b, i) => {
+                b.classList.toggle('active', i + 1 === lvl);
+            });
+            renderNodes();
+            // Reset panneau si changement de niveau
+            document.getElementById('panel-chord').innerText = "--";
+            document.getElementById('scales-list').innerHTML = '<div style="color:#444; font-size:12px; padding-top:5px">Sélectionnez un nouvel accord</div>';
+        }
+
+       function resizeNexus() {
+            // 1. On récupère la taille exacte du conteneur "Milieu"
+            const container = document.getElementById('nexus-container');
+            const availW = container.clientWidth;
+            const availH = container.clientHeight;
+
+            // 2. Marge de sécurité (padding) pour ne pas toucher les bords
+            const margin = 20; 
+
+            // 3. Calcul du ratio par rapport à notre cercle de base (600px)
+            const scaleW = (availW - margin) / 600;
+            const scaleH = (availH - margin) / 600;
+            
+            // 4. On prend le plus petit pour que ça rentre
+            let scale = Math.min(scaleW, scaleH);
+            
+            // Limite Max (pas plus gros que 1.1x sur grand écran)
+            if (scale > 1.1) scale = 1.1; 
+            
+            nexus.style.transform = `scale(${scale})`;
+        }
+
+        window.addEventListener('resize', resizeNexus);
+        window.addEventListener('load', resizeNexus);
+        
+        // Initialisation
+        renderNodes();
+        resizeNexus();
+
+        // Click outside reset (optionnel)
+        document.body.addEventListener('click', (e) => {
+            if (!e.target.closest('.note-node') && !e.target.closest('.complexity-selector')) {
+               // On garde le dernier accord locké pour l'instant (meilleur UX)
+            }
+        });
+
     </script>
 </body>
 </html>
-
-
