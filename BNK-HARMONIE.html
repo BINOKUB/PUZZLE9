@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMPAS HARMONIQUE BINOKUB</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #eee;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #00FFFF;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            margin-bottom: 20px;
+        }
+
+        /* CONTENEUR DU CERCLE */
+        #harmonic-wheel {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            /* background: radial-gradient(circle, #222 0%, #000 70%); */
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.05);
+            margin-top: 20px;
+        }
+
+        /* CENTRE D'INFORMATION */
+        #info-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            background: #111;
+            border: 2px solid #333;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+            z-index: 10;
+            box-shadow: inset 0 0 20px #000;
+        }
+        #chord-name { font-size: 32px; font-weight: bold; color: white; margin: 0; }
+        #chord-type { font-size: 12px; color: #888; margin-top: 5px; }
+
+        /* SECTEURS (CHORDS) */
+        .chord-slice {
+            position: absolute;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #222;
+            color: #666;
+            text-shadow: 0 0 2px black;
+        }
+
+        /* CERCLE EXTERIEUR (MAJEUR) */
+        .major {
+            width: 80px; height: 80px;
+            border-radius: 10px;
+            background: #1a1a1a;
+            font-size: 18px;
+            z-index: 5;
+        }
+        .major:hover { transform: scale(1.2); z-index: 20; }
+
+        /* CERCLE INTERIEUR (MINEUR) */
+        .minor {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: #111;
+            font-size: 14px;
+            z-index: 4;
+            border: 1px solid #333;
+        }
+
+        /* ETATS ACTIFS (LUMIERES) */
+        
+        /* L'accord sélectionné */
+        .active-main {
+            background: #00FFFF !important;
+            color: black !important;
+            box-shadow: 0 0 20px #00FFFF;
+            border-color: white;
+        }
+
+        /* Les accords compatibles (Suggérés) */
+        .active-friend {
+            background: rgba(213, 0, 249, 0.2) !important; /* Magenta tint */
+            color: #D500F9 !important;
+            border-color: #D500F9;
+            box-shadow: 0 0 15px rgba(213, 0, 249, 0.4);
+            transform: scale(1.1);
+        }
+
+        .details {
+            position: absolute; bottom: 20px;
+            color: #666; font-size: 12px;
+            font-family: monospace;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>COMPAS HARMONIQUE</h1>
+    
+    <div id="harmonic-wheel">
+        <div id="info-center">
+            <h2 id="chord-name">--</h2>
+            <span id="chord-type">SURVOLEZ</span>
+        </div>
+        </div>
+
+    <div class="details">CYAN = ACCORD ACTUEL | MAGENTA = HARMONISATION SUGGÉRÉE</div>
+
+    <script>
+        const wheel = document.getElementById('harmonic-wheel');
+        const infoName = document.getElementById('chord-name');
+        const infoType = document.getElementById('chord-type');
+
+        // LE CYCLE DES QUINTES (Données musicales)
+        // Index 0 = C (Do)
+        const keys = [
+            { note: "C",  rel: "Am" }, // 0
+            { note: "G",  rel: "Em" }, // 1
+            { note: "D",  rel: "Bm" }, // 2
+            { note: "A",  rel: "F#m"}, // 3
+            { note: "E",  rel: "C#m"}, // 4
+            { note: "B",  rel: "G#m"}, // 5
+            { note: "Gb", rel: "Ebm"}, // 6 (F#)
+            { note: "Db", rel: "Bbm"}, // 7
+            { note: "Ab", rel: "Fm" }, // 8
+            { note: "Eb", rel: "Cm" }, // 9
+            { note: "Bb", rel: "Gm" }, // 10
+            { note: "F",  rel: "Dm" }  // 11
+        ];
+
+        // Rayon des cercles
+        const radiusMajor = 200;
+        const radiusMinor = 120;
+
+        // Génération du DOM
+        keys.forEach((k, i) => {
+            const angle = (i * 30) - 90; // -90 pour commencer à midi (C)
+            const rad = angle * (Math.PI / 180);
+
+            // --- ACCORD MAJEUR (Extérieur) ---
+            const majDiv = document.createElement('div');
+            majDiv.className = 'chord-slice major';
+            majDiv.innerText = k.note;
+            majDiv.dataset.index = i;
+            majDiv.dataset.type = 'Majeur (Triade/7)';
+            
+            // Positionnement Polaire
+            const xMaj = 250 + radiusMajor * Math.cos(rad) - 40; // 250 = centre, 40 = demi-width
+            const yMaj = 250 + radiusMajor * Math.sin(rad) - 40;
+            majDiv.style.left = xMaj + 'px';
+            majDiv.style.top = yMaj + 'px';
+
+            majDiv.onmouseenter = () => highlightHarmony(i, 'maj');
+            majDiv.onmouseleave = resetHarmony;
+            wheel.appendChild(majDiv);
+
+            // --- ACCORD MINEUR (Intérieur) ---
+            const minDiv = document.createElement('div');
+            minDiv.className = 'chord-slice minor';
+            minDiv.innerText = k.rel;
+            minDiv.dataset.index = i;
+            minDiv.dataset.type = 'Mineur (Relatif)';
+
+            const xMin = 250 + radiusMinor * Math.cos(rad) - 30;
+            const yMin = 250 + radiusMinor * Math.sin(rad) - 30;
+            minDiv.style.left = xMin + 'px';
+            minDiv.style.top = yMin + 'px';
+
+            minDiv.onmouseenter = () => highlightHarmony(i, 'min');
+            minDiv.onmouseleave = resetHarmony;
+            wheel.appendChild(minDiv);
+        });
+
+        // --- LOGIQUE D'HARMONISATION (Le Cerveau du Spécialiste) ---
+        function highlightHarmony(index, type) {
+            resetHarmony();
+            
+            // 1. Identifier l'élément survolé
+            const allMajors = document.querySelectorAll('.major');
+            const allMinors = document.querySelectorAll('.minor');
+            
+            // Données d'affichage
+            let currentEl, name;
+            if (type === 'maj') {
+                currentEl = allMajors[index];
+                name = keys[index].note;
+                infoType.innerText = "MAJEUR (I)";
+                infoName.style.color = "#00FFFF";
+            } else {
+                currentEl = allMinors[index];
+                name = keys[index].rel;
+                infoType.innerText = "MINEUR (vi)";
+                infoName.style.color = "#FF0055"; // Couleur diff pour mineur
+            }
+            
+            currentEl.classList.add('active-main');
+            infoName.innerText = name;
+
+            // 2. CALCUL DES VOISINS HARMONIQUES (Les "Flèches" virtuelles)
+            // Dans le cycle des quintes, les accords qui sonnent bien sont :
+            // - Le voisin de gauche (Sous-dominante / IV)
+            // - Le voisin de droite (Dominante / V)
+            // - Le relatif mineur (Même index)
+            // - Les relatifs mineurs des voisins
+            
+            const prevIndex = (index - 1 + 12) % 12; // IV (Sous-dominante)
+            const nextIndex = (index + 1) % 12;      // V (Dominante)
+
+            // On allume les suggestions :
+            
+            if (type === 'maj') {
+                // Si on est sur un Majeur (ex: Do)
+                allMajors[prevIndex].classList.add('active-friend'); // Fa (IV)
+                allMajors[nextIndex].classList.add('active-friend'); // Sol (V)
+                
+                allMinors[index].classList.add('active-friend');     // Lam (vi - Relatif)
+                allMinors[prevIndex].classList.add('active-friend'); // Rém (ii)
+                allMinors[nextIndex].classList.add('active-friend'); // Mim (iii)
+            } 
+            else {
+                // Si on est sur un Mineur (ex: Lam)
+                // C'est un peu différent, mais on garde la logique de proximité
+                allMinors[prevIndex].classList.add('active-friend'); 
+                allMinors[nextIndex].classList.add('active-friend');
+                
+                allMajors[index].classList.add('active-friend');     // Do (Relatif Majeur)
+                allMajors[prevIndex].classList.add('active-friend'); 
+                allMajors[nextIndex].classList.add('active-friend'); 
+            }
+        }
+
+        function resetHarmony() {
+            document.querySelectorAll('.chord-slice').forEach(el => {
+                el.classList.remove('active-main', 'active-friend');
+            });
+            infoName.innerText = "--";
+            infoType.innerText = "SURVOLEZ";
+            infoName.style.color = "white";
+        }
+
+    </script>
+</body>
+</html>
