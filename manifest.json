@@ -1,7 +1,7 @@
 {
   "name": "Melody Pro Harmony",
   "short_name": "MelodyPro",
-  "start_url": "./MelodyPro_Final.html",
+  "start_url": "./BNK-HARMONIE.html",
   "display": "standalone",
   "background_color": "#050508",
   "theme_color": "#050508",
@@ -12,4 +12,5 @@
       "type": "image/png"
     }
   ]
+
 }
