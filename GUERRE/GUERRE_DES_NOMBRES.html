@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GUERRE DES NOMBRES (Gold Edition)</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --tile-bg: #2a2a2a;
+            --tile-selected: #d4af37;
+            --tile-text: #e0e0e0;
+            --accent-match: #27ae60;
+            --accent-hint: #00ffff;
+            --accent-nuke: #ff00ff;
+            --accent-time: #e67e22;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--tile-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
+        h1 { margin: 0; letter-spacing: 2px; text-transform: uppercase; color: #e74c3c; font-size: 1.5em; text-align: center; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .btn-rules { 
+            width: 30px; height: 30px; border-radius: 50%; border: 2px solid #666; color: #666; 
+            font-weight: bold; cursor: pointer; background: transparent; display: flex; 
+            align-items: center; justify-content: center; font-size: 1.2em;
+        }
+        
+        .hud { display: flex; gap: 15px; margin-bottom: 5px; font-size: 1.0em; font-weight: bold; width: 94vw; max-width: 480px; justify-content: space-between; }
+        .hud span { color: #fff; }
+        .hud .highlight { color: #d4af37; }
+        
+        .timer-box {
+            color: var(--accent-time);
+            border: 1px solid var(--accent-time);
+            padding: 2px 8px;
+            border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .timer-urgent { color: #e74c3c !important; border-color: #e74c3c !important; animation: pulse-red 0.5s infinite; }
+
+        #game-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr); 
+            grid-template-rows: repeat(8, 1fr);
+            gap: 4px;
+            background: #000;
+            padding: 5px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            position: relative;
+            width: 94vw;
+            height: 94vw; 
+            max-width: 480px;
+            max-height: 480px;
+            cursor: default;
+        }
+        
+        .nuke-active { animation: shake-hard 0.5s infinite; border-color: var(--accent-nuke) !important; }
+
+        #message-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.96);
+            padding: 25px;
+            border: 2px solid #d4af37;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            width: 85%;
+            max-width: 350px;
+            box-shadow: 0 0 40px rgba(0,0,0,1);
+            border-radius: 12px;
+        }
+        #message-overlay h2 { margin: 0 0 15px 0; font-size: 1.8em; text-transform: uppercase; }
+        #message-overlay p { font-size: 1.1em; color: #ccc; margin-bottom: 20px; line-height: 1.4; }
+        #message-overlay ul { text-align: left; color: #aaa; margin-bottom: 20px; font-size: 0.9em; padding-left: 20px; }
+        
+        #loading-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            color: #d4af37;
+            font-weight: bold;
+            display: none;
+        }
+        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        
+        #toast {
+            position: absolute;
+            top: 15%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: none;
+            z-index: 200;
+            pointer-events: none;
+            white-space: nowrap;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .tile {
+            width: 100%;
+            height: 100%;
+            background-color: var(--tile-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(16px, 5vw, 26px); 
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .tile[data-r="7"] { border-bottom: 2px solid #333; }
+        .tile[data-r="7"].empty { border-bottom: 1px dashed #333; }
+
+        .tile:active { background-color: #555; }
+        .tile.selected { background-color: var(--tile-selected); color: #000; transform: scale(0.95); box-shadow: 0 0 10px rgba(212, 175, 55, 0.8); z-index: 10; }
+        .tile.nine { color: #ff9f43; border: 1px solid #ff9f43; }
+        .tile.empty { background: transparent; border: 1px dashed #333; }
+        
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(0); opacity: 0;} }
+        @keyframes pulse { 0% { box-shadow: inset 0 0 0 2px var(--accent-hint); } 50% { box-shadow: inset 0 0 20px 5px var(--accent-hint); background: #2c3e50; } 100% { box-shadow: inset 0 0 0 2px var(--accent-hint); } }
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes shake-hard { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        @keyframes nuke-flash { 0% { background: #fff; transform: scale(1); } 50% { background: var(--accent-nuke); transform: scale(1.5); box-shadow: 0 0 50px var(--accent-nuke); z-index: 100; } 100% { background: #000; transform: scale(0); opacity: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .anim-match { animation: pop 0.3s forwards; background-color: var(--accent-match) !important; }
+        .anim-boom { animation: pop 0.4s forwards; background-color: var(--accent-boom) !important; }
+        .anim-hint { animation: pulse 1s infinite; color: var(--accent-hint); border: 1px solid var(--accent-hint); z-index: 20; }
+        .anim-nuke { animation: nuke-flash 1s forwards !important; }
+
+        .controls { margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; }
+        button { padding: 10px 12px; background: transparent; border: 1px solid #d4af37; color: #d4af37; cursor: pointer; font-size: 13px; text-transform: uppercase; transition: 0.2s; font-weight: bold; border-radius: 4px; }
+        button:active { background: #d4af37; color: #000; }
+        button:disabled { border-color: #444; color: #444; animation: none !important; }
+        
+        #btn-hint { border-color: var(--accent-hint); color: var(--accent-hint); flex-grow: 1; }
+        #btn-shuffle { flex-grow: 1; } 
+
+        .win-msg { color: #27ae60; }
+        .lose-msg { color: #e74c3c; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>GUERRE DES NOMBRES</h1>
+        <button class="btn-rules" onclick="showRules()">?</button>
+    </div>
+    
+    <div class="hud">
+        <span>Réserve: <span id="reserve-count" class="highlight">40</span></span>
+        <span id="timer-container" class="timer-box">02:00</span>
+        <span>Score: <span id="score">0</span></span>
+    </div>
+
+    <div style="position:relative;">
+        <div id="game-grid"></div>
+        <div id="loading-overlay">
+            <div class="spinner"></div>
+            <div id="loading-text">Analyse Tactique...</div>
+        </div>
+        <div id="message-overlay">
+            <h2 id="msg-title">TITRE</h2>
+            <div id="msg-content"></div>
+            <div id="overlay-buttons" style="margin-top:20px;"></div>
+        </div>
+        <div id="toast"></div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-hint" onclick="findAndShowHint()">Indice</button>
+        <button id="btn-shuffle" onclick="shuffleGrid()">Brasser (<span id="shuffle-count">1</span>)</button>
+        <button onclick="initGame()">Reset</button>
+    </div>
+
+    <script>
+        // --- MOTEUR AUDIO (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const SoundFX = {
+            click: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            },
+            match: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc1.connect(gain); osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc1.type = 'sine'; osc2.type = 'triangle';
+                osc1.frequency.setValueAtTime(523.25, now); // Do
+                osc2.frequency.setValueAtTime(659.25, now + 0.1); // Mi
+                
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                
+                osc1.start(now); osc1.stop(now + 0.3);
+                osc2.start(now + 0.1); osc2.stop(now + 0.3);
+            },
+            shuffle: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            },
+            alert: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            },
+            lose: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 1);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+                osc.start(); osc.stop(audioCtx.currentTime + 1);
+            },
+            nuke: () => {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                // BOOM
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 1);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
+                osc.start(now); osc.stop(now + 1);
+                
+                // FANFARE
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C E G C
+                notes.forEach((freq, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.1, now + 0.5 + i*0.15);
+                    g.gain.linearRampToValueAtTime(0, now + 0.5 + i*0.15 + 0.4);
+                    o.start(now + 0.5 + i*0.15);
+                    o.stop(now + 0.5 + i*0.15 + 0.4);
+                });
+            }
+        };
+
+        const CHRONO_START = 120; // 2 MINUTES
+        const GRID_SIZE = 8;
+        const INITIAL_RESERVE = 40; 
+        const INITIAL_NINES = 4;
+        
+        const gridElement = document.getElementById('game-grid');
+        const scoreElement = document.getElementById('score');
+        const reserveElement = document.getElementById('reserve-count');
+        const shuffleBtn = document.getElementById('btn-shuffle');
+        const shuffleCountSpan = document.getElementById('shuffle-count');
+        const msgOverlay = document.getElementById('message-overlay');
+        const msgTitle = document.getElementById('msg-title');
+        const msgContent = document.getElementById('msg-content');
+        const overlayBtns = document.getElementById('overlay-buttons');
+        const toast = document.getElementById('toast');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const timerDisplay = document.getElementById('timer-container');
+
+        let grid = []; 
+        let selectedTile = null; 
+        let score = 0;
+        let reserve = 0;
+        let shuffleLeft = 1; 
+        let isProcessing = false; 
+        
+        let gameReserveQueue = []; 
+        let timerInterval = null;
+        let timeLeft = CHRONO_START;
+
+        function hasNineNeighbor(r, c) {
+            let deltas = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+            for (let d of deltas) {
+                let nr = r + d[0];
+                let nc = c + d[1];
+                if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+                    if (grid[nr][nc].val === 9) return true;
+                }
+            }
+            return false;
+        }
+
+        async function initGame() {
+            stopTimer(); 
+            msgOverlay.style.display = 'none';
+            loadingOverlay.style.display = 'flex';
+            setTimeout(async () => {
+                let result = generateWinnableLevel(); 
+                startLevel(result.grid, result.queue);
+                loadingOverlay.style.display = 'none';
+            }, 100);
+        }
+
+        function startLevel(dataGrid, winningQueue) {
+            gridElement.innerHTML = '';
+            grid = [];
+            score = 0;
+            reserve = INITIAL_RESERVE;
+            shuffleLeft = 1; 
+            selectedTile = null;
+            isProcessing = false;
+            
+            gameReserveQueue = [...winningQueue]; 
+            
+            scoreElement.innerText = score;
+            reserveElement.innerText = reserve;
+            shuffleCountSpan.innerText = shuffleLeft;
+            
+            shuffleBtn.disabled = false;
+
+            for (let r = 0; r < GRID_SIZE; r++) {
+                let row = [];
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.dataset.r = r;
+                    tile.dataset.c = c;
+                    tile.onclick = () => handleTileClick(r, c);
+                    gridElement.appendChild(tile);
+                    let val = dataGrid[r][c];
+                    row.push({ val: val, el: tile });
+                }
+                grid.push(row);
+            }
+            for(let r=0; r<GRID_SIZE; r++) { for(let c=0; c<GRID_SIZE; c++) { updateVisual(grid[r][c]); } }
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = CHRONO_START;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if(timeLeft <= 10 && timeLeft > 0) SoundFX.alert(); // Son Alerte
+                if (timeLeft <= 0) triggerTimeGameOver();
+            }, 1000);
+        }
+
+        function stopTimer() { clearInterval(timerInterval); }
+
+        function updateTimerDisplay() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+            if (timeLeft <= 30) timerDisplay.classList.add('timer-urgent');
+            else timerDisplay.classList.remove('timer-urgent');
+        }
+
+        function triggerTimeGameOver() {
+            stopTimer();
+            SoundFX.lose();
+            showOverlay("TEMPS ÉCOULÉ", "<p>Trop lent !<br>Score Final: " + score + "</p>", "lose-msg", false);
+        }
+
+        function generateWinnableLevel() {
+            let attempts = 0;
+            let bestResult = null;
+            let maxScore = -1;
+
+            while(attempts < 50) {
+                let tempGrid = createVirtualGrid();
+                let deck = [];
+                for(let i=1; i<=8; i++) { for(let k=0; k<5; k++) deck.push(i); }
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+                
+                let simResult = simulateGame(JSON.parse(JSON.stringify(tempGrid)), [...deck]);
+                
+                if(simResult.isWin) return { grid: tempGrid, queue: deck };
+                
+                if(simResult.clearedPercent > maxScore) {
+                    maxScore = simResult.clearedPercent;
+                    bestResult = { grid: tempGrid, queue: deck };
+                }
+                attempts++;
+            }
+            return bestResult;
+        }
+
+        function createVirtualGrid() {
+            let vGrid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+            let columns = [0, 1, 2, 3, 4, 5, 6, 7];
+            for (let i = columns.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [columns[i], columns[j]] = [columns[j], columns[i]];
+            }
+            let selectedCols = columns.slice(0, INITIAL_NINES);
+            for(let col of selectedCols) {
+                let row = Math.floor(Math.random() * 3); 
+                vGrid[row][col] = 9;
+            }
+
+            let startDeck = [];
+            for(let i=1; i<=8; i++) { for(let k=0; k<8; k++) startDeck.push(i); }
+            for (let i = startDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [startDeck[i], startDeck[j]] = [startDeck[j], startDeck[i]];
+            }
+
+            for(let r=0; r<GRID_SIZE; r++) {
+                for(let c=0; c<GRID_SIZE; c++) {
+                    if(vGrid[r][c] === 0) vGrid[r][c] = startDeck.pop();
+                }
+            }
+            return vGrid;
+        }
+
+        function simulateGame(simGrid, simQueue) {
+            let simReserve = simQueue.length;
+            let moves = 0;
+            let stuck = false;
+
+            while(!stuck && moves < 300) {
+                for(let c=0; c<GRID_SIZE; c++) if(simGrid[GRID_SIZE-1][c] === 9) return { isWin: true, clearedPercent: 100 };
+                let totalBlocks = 0;
+                for(let r=0; r<GRID_SIZE; r++) for(let c=0; c<GRID_SIZE; c++) if(simGrid[r][c] !== 0) totalBlocks++;
+                if(totalBlocks === 0 && simReserve === 0) return { isWin: true, clearedPercent: 100 };
+
+                let moveFound = false;
+                outerLoop:
+                for(let r=0; r<GRID_SIZE; r++) {
+                    for(let c=0; c<GRID_SIZE; c++) {
+                        if(simGrid[r][c] === 0) continue;
+                        let targets = [{r: r, c: c+1}, {r: r+1, c: c}, {r: r+1, c: c+1}, {r: r+1, c: c-1}];
+                        for(let t of targets) {
+                            if(t.r < GRID_SIZE && t.c >= 0 && t.c < GRID_SIZE && simGrid[t.r][t.c] !== 0) {
+                                let valA = simGrid[r][c];
+                                let valB = simGrid[t.r][t.c];
+                                let isMatch = false;
+                                if (valA === 9 || valB === 9) isMatch = false;
+                                else if (valA + valB === 9) isMatch = true;
+
+                                if(isMatch) {
+                                    simGrid[r][c] = 0;
+                                    simGrid[t.r][t.c] = 0;
+                                    applySimGravity(simGrid, simQueue);
+                                    simReserve = simQueue.length; 
+                                    moveFound = true;
+                                    break outerLoop;
+                                }
+                            }
+                        }
+                    }
+                }
+                if(!moveFound) stuck = true;
+                moves++;
+            }
+            let emptyCount = 0;
+            for(let r=0; r<GRID_SIZE; r++) for(let c=0; c<GRID_SIZE; c++) if(simGrid[r][c] === 0) emptyCount++;
+            return { isWin: false, clearedPercent: (emptyCount / 64) * 100 };
+        }
+
+        function applySimGravity(sGrid, sQueue) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                let activeTiles = [];
+                for (let r = 0; r < GRID_SIZE; r++) if (sGrid[r][c] !== 0) activeTiles.push(sGrid[r][c]);
+                while (activeTiles.length < GRID_SIZE) {
+                    if(sQueue.length > 0) activeTiles.unshift(sQueue.shift()); 
+                    else activeTiles.unshift(0);
+                }
+                for (let r = 0; r < GRID_SIZE; r++) sGrid[r][c] = activeTiles[r];
+            }
+        }
+
+        function fillGrid(isInitial = false, freeFill = false) {
+            let cellsFilled = 0;
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let cell = grid[r][c];
+                    if (cell.val === 0 && (freeFill || reserve > 0)) {
+                        if(gameReserveQueue.length > 0) cell.val = gameReserveQueue.shift();
+                        else cell.val = Math.floor(Math.random() * 8) + 1;
+                        if (!freeFill) {
+                            reserve--;
+                            reserveElement.innerText = reserve;
+                        }
+                        cellsFilled++;
+                    }
+                    updateVisual(cell);
+                }
+            }
+            setTimeout(() => { checkBottomNuke(); }, 300);
+        }
+
+        function updateVisual(cell) {
+            cell.el.className = 'tile'; 
+            if (cell.val === 9) {
+                cell.el.innerText = '9';
+                cell.el.classList.add('nine');
+            } else if (cell.val > 0) {
+                cell.el.innerText = cell.val;
+            } else {
+                cell.el.innerText = '';
+                cell.el.classList.add('empty');
+            }
+        }
+
+        function checkBottomNuke() {
+            let nukeTriggered = false;
+            let triggerCell = null;
+            for(let c = 0; c < GRID_SIZE; c++) {
+                if(grid[GRID_SIZE-1][c].val === 9) {
+                    nukeTriggered = true;
+                    triggerCell = grid[GRID_SIZE-1][c];
+                    break;
+                }
+            }
+            if(nukeTriggered && triggerCell) {
+                isProcessing = true;
+                triggerNukeSequence(triggerCell);
+            } else {
+                checkGameState(); 
+            }
+        }
+
+        function triggerNukeSequence(cell) {
+            stopTimer(); 
+            SoundFX.nuke(); // SON NUKE
+            gridElement.classList.add('nuke-active');
+            cell.el.classList.add('anim-nuke');
+            setTimeout(() => {
+                for(let r=0; r<GRID_SIZE; r++){
+                    for(let c=0; c<GRID_SIZE; c++){
+                        if(grid[r][c].val !== 0) {
+                            grid[r][c].val = 0;
+                            grid[r][c].el.classList.add('anim-boom');
+                        }
+                    }
+                }
+                score += 5000; 
+                scoreElement.innerText = score;
+                gridElement.classList.remove('nuke-active');
+                setTimeout(() => {
+                     showOverlay("VICTOIRE NUCLÉAIRE !", "<p>Le 9 a touché le fond.<br>Zone totalement nettoyée !<br>Score: " + score + "</p>", "win-msg", false);
+                }, 800);
+            }, 800);
+        }
+
+        function handleTileClick(r, c) {
+            // Activer Audio Context au premier click (hack browser policy)
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            document.querySelectorAll('.anim-hint').forEach(el => el.classList.remove('anim-hint'));
+            if (isProcessing) return;
+            if (grid[r][c].val === 0) return;
+
+            SoundFX.click(); // SON CLIC
+
+            if (!selectedTile) {
+                selectedTile = { r, c };
+                grid[r][c].el.classList.add('selected');
+                return;
+            }
+            if (selectedTile.r === r && selectedTile.c === c) {
+                grid[r][c].el.classList.remove('selected');
+                selectedTile = null;
+                return;
+            }
+            if (canConnect(selectedTile.r, selectedTile.c, r, c)) {
+                attemptMatch(grid[selectedTile.r][selectedTile.c], grid[r][c]);
+            } else {
+                grid[selectedTile.r][selectedTile.c].el.classList.remove('selected');
+                selectedTile = { r, c };
+                grid[r][c].el.classList.add('selected');
+            }
+        }
+
+        function canConnect(r1, c1, r2, c2) {
+            let diffR = Math.abs(r1 - r2);
+            let diffC = Math.abs(c1 - c2);
+            if (r1 === r2 || c1 === c2) {
+                if (r1 === r2) { 
+                    let min = Math.min(c1, c2), max = Math.max(c1, c2);
+                    for (let k = min + 1; k < max; k++) if (grid[r1][k].val !== 0) return false;
+                } else { 
+                    let min = Math.min(r1, r2), max = Math.max(r1, r2);
+                    for (let k = min + 1; k < max; k++) if (grid[k][c1].val !== 0) return false;
+                }
+                return true;
+            }
+            if (diffR === diffC) {
+                let stepR = (r2 > r1) ? 1 : -1;
+                let stepC = (c2 > c1) ? 1 : -1;
+                let currentR = r1 + stepR;
+                let currentC = c1 + stepC;
+                while (currentR !== r2) {
+                    if (grid[currentR][currentC].val !== 0) return false; 
+                    currentR += stepR;
+                    currentC += stepC;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function attemptMatch(cellA, cellB) {
+            const sum = cellA.val + cellB.val;
+            let isMatch = false;
+            if (cellA.val === 9 || cellB.val === 9) isMatch = false;
+            else if (sum === 9) isMatch = true;
+
+            if (isMatch) {
+                SoundFX.match(); // SON MATCH
+                isProcessing = true;
+                cellA.el.classList.remove('selected');
+                selectedTile = null;
+                cellA.el.classList.add('anim-match');
+                cellB.el.classList.add('anim-match');
+                cellA.val = 0; 
+                cellB.val = 0;
+                score += 100;
+                scoreElement.innerText = score;
+                setTimeout(applyGravity, 300);
+            } else {
+                cellA.el.classList.remove('selected');
+                selectedTile = { r: parseInt(cellB.el.dataset.r), c: parseInt(cellB.el.dataset.c) };
+                cellB.el.classList.add('selected');
+            }
+        }
+
+        function applyGravity() {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                let activeTiles = [];
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    if (grid[r][c].val !== 0) activeTiles.push(grid[r][c].val);
+                }
+                while (activeTiles.length < GRID_SIZE) activeTiles.unshift(0); 
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    grid[r][c].val = activeTiles[r];
+                }
+            }
+            document.querySelectorAll('.anim-match, .anim-boom').forEach(e => {
+                e.classList.remove('anim-match');
+                e.classList.remove('anim-boom');
+            });
+            fillGrid(false, false); 
+            isProcessing = false;
+        }
+
+        function shuffleGrid() {
+            if (shuffleLeft <= 0 || isProcessing) return;
+            SoundFX.shuffle(); // SON SHUFFLE
+            shuffleLeft--;
+            shuffleCountSpan.innerText = shuffleLeft;
+            if (shuffleLeft === 0) shuffleBtn.disabled = true;
+            performShuffleLogic();
+        }
+
+        function performShuffleLogic() {
+            let ninesCount = 0;
+            let others = [];
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (grid[r][c].val === 9) ninesCount++;
+                    else if (grid[r][c].val !== 0) others.push(grid[r][c].val);
+                }
+            }
+            for (let i = others.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [others[i], others[j]] = [others[j], others[i]];
+            }
+            for(let r=0; r<GRID_SIZE; r++) for(let c=0; c<GRID_SIZE; c++) grid[r][c].val = 0;
+
+            let columns = [0, 1, 2, 3, 4, 5, 6, 7];
+            for (let i = columns.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [columns[i], columns[j]] = [columns[j], columns[i]];
+            }
+            let selectedCols = columns.slice(0, ninesCount);
+            for(let col of selectedCols) {
+                let row = Math.floor(Math.random() * 3); 
+                grid[row][col].val = 9;
+            }
+
+            let otherIndex = 0;
+            for(let r=GRID_SIZE-1; r>=0; r--) {
+                for(let c=0; c<GRID_SIZE; c++) {
+                    if(grid[r][c].val === 0 && otherIndex < others.length) {
+                        grid[r][c].val = others[otherIndex++];
+                    }
+                }
+            }
+            for(let r=0; r<GRID_SIZE; r++) {
+                for(let c=0; c<GRID_SIZE; c++) {
+                    updateVisual(grid[r][c]);
+                }
+            }
+            setTimeout(() => checkBottomNuke(), 300);
+        }
+
+        function checkGameState() {
+            let isEmpty = true;
+            let hasBlocks = false;
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (grid[r][c].val !== 0) { isEmpty = false; hasBlocks = true; break; }
+                }
+            }
+            if (isEmpty && reserve === 0) {
+                stopTimer();
+                SoundFX.nuke(); // Victoire
+                showOverlay("VICTOIRE !", "<p>Grille nettoyée.<br>Score: " + score + "</p>", "win-msg", false);
+                return;
+            }
+            let canMove = false;
+            if (hasBlocks) canMove = scanForAnyMove();
+            if (!canMove && reserve === 0 && hasBlocks) {
+                if (shuffleLeft > 0) {
+                    toast.innerText = "UTILISEZ BRASSER !";
+                    showToast(toast.innerText);
+                    return;
+                }
+                stopTimer();
+                SoundFX.lose();
+                showOverlay("GAME OVER", "<p>Aucun mouvement possible.<br>Score Final: " + score + "</p>", "lose-msg", false);
+            }
+        }
+        
+        function showToast(text) {
+            toast.innerText = text;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        }
+
+        function scanForAnyMove() {
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let cell = grid[r][c];
+                    if (cell.val === 0) continue;
+                    for (let k = c + 1; k < GRID_SIZE; k++) {
+                        if (hintCheckLogic(cell, r, k)) return true;
+                        if (grid[r][k].val !== 0) break; 
+                    }
+                    for (let k = r + 1; k < GRID_SIZE; k++) {
+                        if (hintCheckLogic(cell, k, c)) return true;
+                        if (grid[k][c].val !== 0) break;
+                    }
+                    for (let k = 1; r+k < GRID_SIZE && c+k < GRID_SIZE; k++) {
+                        if (hintCheckLogic(cell, r+k, c+k)) return true;
+                        if (grid[r+k][c+k].val !== 0) break;
+                    }
+                    for (let k = 1; r+k < GRID_SIZE && c-k >= 0; k++) {
+                        if (hintCheckLogic(cell, r+k, c-k)) return true;
+                        if (grid[r+k][c-k].val !== 0) break;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function hintCheckLogic(cellA, rB, cB) {
+            let target = grid[rB][cB];
+            if (target.val === 0) return false;
+            if(cellA.val === 9 || target.val === 9) return false;
+            return (cellA.val + target.val === 9);
+        }
+
+        function showOverlay(title, contentHTML, cssClass, isRescue) {
+            msgTitle.innerText = title;
+            msgTitle.className = cssClass;
+            msgContent.innerHTML = contentHTML;
+            overlayBtns.innerHTML = ''; 
+            let btn = document.createElement('button');
+            btn.innerText = "NOUVELLE PARTIE";
+            btn.onclick = initGame;
+            overlayBtns.appendChild(btn);
+            if(title !== "VICTOIRE !" && title !== "GAME OVER" && title !== "VICTOIRE NUCLÉAIRE !" && title !== "TEMPS ÉCOULÉ") {
+                let btnClose = document.createElement('button');
+                btnClose.innerText = "FERMER";
+                btnClose.style.marginTop = "10px";
+                btnClose.onclick = () => msgOverlay.style.display = 'none';
+                overlayBtns.appendChild(btnClose);
+            }
+            msgOverlay.style.display = 'block';
+        }
+        
+        function showRules() {
+            let rulesHTML = `
+                <ul>
+                    <li><strong>BUT :</strong> Faire descendre UN SEUL "9" en bas (Ligne 8).</li>
+                    <li><strong>MATCH :</strong> Somme = <strong>9</strong> (Ortho + Diagonales).</li>
+                    <li><strong>TEMPS :</strong> 2 Minutes ou c'est perdu !</li>
+                    <li><strong>BRASSAGE :</strong> 1 seule chance.</li>
+                </ul>
+            `;
+            showOverlay("RÈGLES V24", rulesHTML, "info-msg", false);
+        }
+
+        function findAndShowHint() {
+            if (isProcessing) return;
+            document.querySelectorAll('.anim-hint').forEach(el => el.classList.remove('anim-hint'));
+            let found = false;
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let cell = grid[r][c];
+                    if (cell.val === 0) continue;
+                    for (let k = c + 1; k < GRID_SIZE; k++) {
+                        if (hintCheckVisual(cell, r, k)) { found=true; return; }
+                        if (grid[r][k].val !== 0) break;
+                    }
+                    for (let k = r + 1; k < GRID_SIZE; k++) {
+                        if (hintCheckVisual(cell, k, c)) { found=true; return; }
+                        if (grid[k][c].val !== 0) break;
+                    }
+                    for (let k = 1; r+k < GRID_SIZE && c+k < GRID_SIZE; k++) {
+                        if (hintCheckVisual(cell, r+k, c+k)) { found=true; return; }
+                        if (grid[r+k][c+k].val !== 0) break;
+                    }
+                    for (let k = 1; r+k < GRID_SIZE && c-k >= 0; k++) {
+                        if (hintCheckVisual(cell, r+k, c-k)) { found=true; return; }
+                        if (grid[r+k][c-k].val !== 0) break;
+                    }
+                }
+            }
+            if(!found) {
+                const btn = document.getElementById('btn-hint');
+                btn.style.borderColor = 'red';
+                setTimeout(() => btn.style.borderColor = 'var(--accent-hint)', 200);
+            }
+        }
+        
+        function hintCheckVisual(cellA, rB, cB) {
+            let target = grid[rB][cB];
+            if (target.val === 0) return false;
+            let isMatch = false;
+            if (cellA.val === 9 || target.val === 9) isMatch = false;
+            else if (cellA.val + target.val === 9) isMatch = true;
+
+            if (isMatch) {
+                cellA.el.classList.add('anim-hint');
+                target.el.classList.add('anim-hint');
+                return true; 
+            }
+            return false;
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
