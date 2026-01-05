@@ -137,18 +137,28 @@
         }
 
         /* --- STYLE POUR MOBILE (Responsive) --- */
+       /* --- STYLE POUR MOBILE (Responsive) --- */
         @media (max-width: 600px) {
             .app-card {
-                flex-direction: column; /* On empile tout */
-                align-items: flex-start;
-                text-align: left;
+                flex-direction: column; /* On empile tout verticalement */
+                align-items: center;    /* CENTRE tout (icône, texte, bouton) */
+                text-align: center;     /* Centre le texte de description */
+                padding: 30px 20px;     /* Un peu plus d'espace interne */
             }
-            .app-icon { margin-bottom: 15px; }
-            .app-details { padding: 0; margin-bottom: 20px; }
+
+            .app-icon { 
+                margin-bottom: 15px;    /* Espace sous l'icône */
+            }
+
+            .app-details { 
+                padding: 0; 
+                margin-bottom: 25px;    /* Espace sous le texte avant le bouton */
+            }
+
             .btn-get { 
-                width: 100%; 
+                width: auto;            /* CORRECTION : On arrête de forcer 100% */
+                min-width: 200px;       /* On assure une taille large tactile */
                 text-align: center; 
-                background-color: #222; /* Fond plus clair sur mobile pour le bouton */
             }
         }
         
@@ -223,4 +233,5 @@
     </script>
 
 </body>
+
 </html>
