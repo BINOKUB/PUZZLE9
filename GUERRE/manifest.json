@@ -1,6 +1,8 @@
 {
   "name": "Guerre des Nombres",
   "short_name": "Guerre",
+  "id": "/GUERRE/",
+  "scope": "/GUERRE/",
   "start_url": "./GUERRE-DES-NOMBRES.html",
   "display": "standalone",
   "background_color": "#000000",
