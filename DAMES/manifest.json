@@ -1,6 +1,8 @@
 {
   "name": "Jeu de Dames",
   "short_name": "Dames",
+  "id": "/DAMES/",
+  "scope": "/DAMES/",
   "start_url": "./DAME-COLOR.html",
   "display": "standalone",
   "background_color": "#111111",
