@@ -1,0 +1,13 @@
+{
+  "id": "binokub_puzzle9_v12",
+  "name": "Binokub Puzzle 9",
+  "short_name": "Puzzle 9",
+  "start_url": "https://puzzle9.binokub.com/PUZZLE9/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#00f3ff",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "scope": "/PUZZLE9/"
+}
