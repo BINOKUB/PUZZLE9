@@ -1,18 +1,26 @@
 {
-  "short_name": "TicTacTo",
+  "id": "binokub_tictacto_v1",
   "name": "Binokub Tic-Tac-To De Luxe",
+  "short_name": "TicTacTo",
+  "description": "Jeu de Tic-Tac-Toe style Néon par Binokub",
   "icons": [
     {
-      "id": "/TICTACTO/",
-  "scope": "/TICTACTO/",
-      "src": "icon-tictacto.png",
+      "src": "https://puzzle9.binokub.com/TICTACTO/icon-tictacto.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "https://puzzle9.binokub.com/TICTACTO/icon-tictacto.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "start_url": "/TICTACTO/index.html",
+  "start_url": "https://puzzle9.binokub.com/TICTACTO/index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#050505",
-  "theme_color": "#00f3ff"
+  "theme_color": "#00f3ff",
+  "scope": "/TICTACTO/"
 }
