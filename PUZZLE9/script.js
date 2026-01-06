@@ -1,19 +1,18 @@
-// BINOKUB PUZZLE 9 - VERSION DE LUXE (REV 12.5)
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Éléments ---
+    // --- Éléments de l'interface ---
     const configScreen = document.getElementById('config-screen');
     const gameScreen = document.getElementById('game-screen');
     const gridContainer = document.getElementById('game-grid');
     const statusMsg = document.getElementById('status-msg');
     
-    // --- Variables ---
+    // --- Variables Globales ---
     let settings = {};
     let solutionBoard = [], gameBoard = [], playableSuites = new Set();
     let selectedCell = null;
     let score = 0, timeElapsed = 0, lockedCells = new Set(), movesRemaining = 0, isGameOver = false;
     let timerInterval = null;
 
-    // --- Audio & Vibration ---
+    // --- Audio (Noms de fichiers synchronisés) ---
     const sounds = {
         clic: new Audio('neon-clic.mp3'),
         ding: new Audio('ding.mp3'),
@@ -25,9 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function playAction(type) {
         if (sounds[type]) {
             sounds[type].currentTime = 0;
-            sounds[type].play().catch(() => {}); // Évite les erreurs si les sons ne sont pas chargés
+            sounds[type].play().catch(() => {});
         }
-        // Vibration haptique (si disponible sur Android)
         if (navigator.vibrate) {
             if (type === 'incorrect' || type === 'gameover') navigator.vibrate([100, 50, 100]);
             else navigator.vibrate(20);
@@ -36,8 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const DIFFICULTY_LEVELS = { "Facile": 0.60, "Moyen": 0.75, "Difficile": 0.90 };
 
-    // --- Navigation ---
+    // --- Navigation et Lancement (Correction de la ligne 44) ---
     document.getElementById('start-btn').addEventListener('click', () => {
+        // La sélection ne renverra plus 'null' car les 'checked' sont présents
         settings = {
             gridSize: parseInt(document.querySelector('input[name="gridSize"]:checked').value),
             difficulty: document.querySelector('input[name="difficulty"]:checked').value,
@@ -53,6 +52,37 @@ document.addEventListener('DOMContentLoaded', () => {
             gameScreen.classList.add('hidden');
             configScreen.classList.remove('hidden');
             clearInterval(timerInterval);
+        }
+    });
+
+    // --- Fonctions Indice & Solution ---
+    document.getElementById('hint-btn').addEventListener('click', () => {
+        if (!selectedCell) {
+            statusMsg.textContent = "SÉLECTIONNEZ UN NUMÉRO D'ABORD";
+            return;
+        }
+        const numToFind = gameBoard[selectedCell.row][selectedCell.col];
+        for (let r = 0; r < settings.gridSize; r++) {
+            for (let c = 0; c < settings.gridSize; c++) {
+                if (solutionBoard[r][c] === numToFind) {
+                    const hintCell = document.getElementById(`cell-${r}-${c}`);
+                    if(hintCell) {
+                        hintCell.style.boxShadow = "0 0 20px #ffffff";
+                        setTimeout(() => { hintCell.style.boxShadow = ""; }, 1000);
+                    }
+                    return;
+                }
+            }
+        }
+    });
+
+    document.getElementById('solution-btn').addEventListener('click', () => {
+        if(confirm("Afficher la solution ? (Score annulé)")) {
+            gameBoard = JSON.parse(JSON.stringify(solutionBoard));
+            renderBoard();
+            statusMsg.textContent = "SOLUTION AFFICHÉE";
+            score = 0;
+            updateStats();
         }
     });
 
@@ -75,11 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return board;
     }
 
-    // --- Moteur du Jeu ---
+    // --- Affichage et Gameplay ---
     function renderBoard() {
         gridContainer.innerHTML = '';
-        // Ajustement automatique de la taille des cellules selon la grille
-        const gridW = Math.min(window.innerWidth - 40, 500);
+        const gridW = Math.min(window.innerWidth - 40, 550);
         const cellSize = (gridW / settings.gridSize) - 6;
         
         gridContainer.style.gridTemplateColumns = `repeat(${settings.gridSize}, 1fr)`;
@@ -90,13 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const num = gameBoard[r][c];
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
+                cell.id = `cell-${r}-${c}`;
                 cell.style.height = `${cellSize}px`;
-                cell.style.fontSize = `${cellSize * 0.5}px`;
+                cell.style.fontSize = `${cellSize * 0.4}px`;
                 
                 if (num !== 0) {
                     cell.textContent = num;
                     cell.classList.add(`base-${getBase(num)}`);
-                    // Feedback visuel direct
                     if (num === solutionBoard[r][c]) cell.classList.add('correct');
                     else cell.classList.add('wrong');
                 } else {
@@ -130,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const sC = selectedCell.col;
             const sNum = gameBoard[sR][sC];
             
-            // Si on clique sur la même case, on désélectionne
             if (sR === row && sC === col) {
                 selectedCell = null;
                 renderBoard();
@@ -139,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isValid = (sNum === solutionBoard[row][col]);
 
-            // Application de la logique selon le mode
             if (settings.gameMode === 'SURVIE') {
                 if (isValid) {
                     score += lockedCells.size > 0 ? 75 : 150;
@@ -225,12 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
         lockedCells = new Set();
         solutionBoard = generateSolution();
         
-        // Distribution des suites jouables
         const flatSolution = solutionBoard.flat();
         const count = Math.floor(flatSolution.length * DIFFICULTY_LEVELS[settings.difficulty]);
         playableSuites = new Set(flatSolution.sort(() => Math.random() - 0.5).slice(0, count));
         
-        // Remplissage du plateau
         let items = [...playableSuites];
         while (items.length < settings.gridSize ** 2) items.push(0);
         items.sort(() => Math.random() - 0.5);
@@ -255,36 +280,4 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStats();
         renderBoard();
     }
-    // --- Fonction INDICE ---
-    document.getElementById('hint-btn').addEventListener('click', () => {
-        if (!selectedCell) {
-            statusMsg.textContent = "SÉLECTIONNEZ UN NUMÉRO D'ABORD";
-            return;
-        }
-        const numToFind = gameBoard[selectedCell.row][selectedCell.col];
-        for (let r = 0; r < settings.gridSize; r++) {
-            for (let c = 0; c < settings.gridSize; c++) {
-                if (solutionBoard[r][c] === numToFind) {
-                    const hintCell = document.querySelector(`#cell-${r}-${c}`);
-                    if(hintCell) {
-                        hintCell.style.boxShadow = "0 0 30px #ffffff";
-                        setTimeout(() => { hintCell.style.boxShadow = ""; }, 1000);
-                    }
-                    return;
-                }
-            }
-        }
-    });
-
-    // --- Fonction SOLUCE ---
-    document.getElementById('solution-btn').addEventListener('click', () => {
-        // Alerte de sécurité pour ne pas tricher par erreur
-        if(confirm("Afficher la solution complète ? (Score annulé)")) {
-            gameBoard = JSON.parse(JSON.stringify(solutionBoard));
-            renderBoard();
-            statusMsg.textContent = "SOLUTION AFFICHÉE";
-            score = 0;
-            updateStats();
-        }
-    });
 });
