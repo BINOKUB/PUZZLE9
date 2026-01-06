@@ -9,22 +9,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app-container">
-        <div id="config-screen" class="screen">
+   <div id="config-screen" class="screen">
             <h1 class="neon-text">PUZZLE 9</h1>
             <div class="glass-card">
-                <h3>TAILLE</h3>
+                <h3>TAILLE DE GRILLE</h3>
                 <div class="radio-group">
                     <label><input type="radio" name="gridSize" value="4"> 4x4</label>
                     <label><input type="radio" name="gridSize" value="6"> 6x6</label>
                     <label><input type="radio" name="gridSize" value="9" checked> 9x9</label>
                 </div>
+
                 <h3>DIFFICULTÉ</h3>
                 <div class="radio-group">
                     <label><input type="radio" name="difficulty" value="Facile"> Facile</label>
                     <label><input type="radio" name="difficulty" value="Moyen" checked> Moyen</label>
-                    <label><input type="radio" name="difficulty" value="Difficile"> Hard</label>
+                    <label><input type="radio" name="difficulty" value="Difficile"> Difficile</label>
                 </div>
+
+                <h3>MODE DE JEU</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="gameMode" value="SURVIE" checked> Survie</label>
+                    <label><input type="radio" name="gameMode" value="COUPS_LIMITES"> Coups Limités</label>
+                </div>
+
                 <button id="start-btn" class="main-btn">COMMENCER</button>
             </div>
         </div>
