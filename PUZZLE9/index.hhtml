@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Binokub Puzzle 9</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#00f3ff">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <div id="config-screen" class="screen">
+            <h1 class="neon-text">PUZZLE 9</h1>
+            <div class="glass-card">
+                <h3>TAILLE</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="gridSize" value="4"> 4x4</label>
+                    <label><input type="radio" name="gridSize" value="6"> 6x6</label>
+                    <label><input type="radio" name="gridSize" value="9" checked> 9x9</label>
+                </div>
+                <h3>DIFFICULTÉ</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="difficulty" value="Facile"> Facile</label>
+                    <label><input type="radio" name="difficulty" value="Moyen" checked> Moyen</label>
+                    <label><input type="radio" name="difficulty" value="Difficile"> Hard</label>
+                </div>
+                <button id="start-btn" class="main-btn">COMMENCER</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <div class="stats-bar">
+                <div id="info-left"></div>
+                <div id="info-right"></div>
+            </div>
+            
+            <div id="game-grid"></div>
+            
+            <div id="status-msg">Prêt ?</div>
+
+            <div class="action-bar">
+                <button id="menu-btn" class="sub-btn">MENU</button>
+                <button id="hint-btn" class="sub-btn">INDICE</button>
+                <button id="solution-btn" class="sub-btn">SOLUCE</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
