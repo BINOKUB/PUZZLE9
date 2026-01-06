@@ -3,6 +3,8 @@
   "name": "Binokub Tic-Tac-To De Luxe",
   "icons": [
     {
+      "id": "/TICTACTO/",
+  "scope": "/TICTACTO/",
       "src": "icon-tictacto.png",
       "sizes": "512x512",
       "type": "image/png",
