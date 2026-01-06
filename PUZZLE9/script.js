@@ -12,14 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = 0, timeElapsed = 0, lockedCells = new Set(), movesRemaining = 0, isGameOver = false;
     let timerInterval = null;
 
-    // --- Audio (Noms de fichiers synchronisés) ---
-    const sounds = {
+    // --- Audio ---
+     const sounds = {
         clic: new Audio('neon-clic.mp3'),
         ding: new Audio('ding.mp3'),
         victory: new Audio('neon-victory.mp3'),
         incorrect: new Audio('neon-error.mp3'),
         gameover: new Audio('neon-over.mp3')
     };
+
 
     function playAction(type) {
         if (sounds[type]) {
@@ -34,9 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const DIFFICULTY_LEVELS = { "Facile": 0.60, "Moyen": 0.75, "Difficile": 0.90 };
 
-    // --- Navigation et Lancement (Correction de la ligne 44) ---
+    // --- Lancement du jeu ---
     document.getElementById('start-btn').addEventListener('click', () => {
-        // La sélection ne renverra plus 'null' car les 'checked' sont présents
+        // Lecture des valeurs (fixée par les attributs 'checked' dans l'index)
         settings = {
             gridSize: parseInt(document.querySelector('input[name="gridSize"]:checked').value),
             difficulty: document.querySelector('input[name="difficulty"]:checked').value,
@@ -52,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gameScreen.classList.add('hidden');
             configScreen.classList.remove('hidden');
             clearInterval(timerInterval);
+            displayScores(); // Rafraîchit les scores au retour au menu
         }
     });
 
@@ -86,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Logique Mathématique ---
+    // --- Logique du Plateau ---
     function getBase(n) { 
         if (n === 0) return 0;
         return (n % 9 === 0) ? 9 : (n % 9);
@@ -96,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const board = Array(settings.gridSize).fill(0).map(() => Array(settings.gridSize).fill(0));
         let startNum = Math.floor(Math.random() * 50) + 50;
         while (getBase(startNum) !== 1) startNum++;
-        
         for (let r = 0; r < settings.gridSize; r++) {
             for (let c = 0; c < settings.gridSize; c++) {
                 board[r][c] = startNum + (r * 9) + c;
@@ -105,12 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return board;
     }
 
-    // --- Affichage et Gameplay ---
     function renderBoard() {
         gridContainer.innerHTML = '';
         const gridW = Math.min(window.innerWidth - 40, 550);
         const cellSize = (gridW / settings.gridSize) - 6;
-        
         gridContainer.style.gridTemplateColumns = `repeat(${settings.gridSize}, 1fr)`;
         gridContainer.style.width = `${gridW}px`;
 
@@ -122,22 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.id = `cell-${r}-${c}`;
                 cell.style.height = `${cellSize}px`;
                 cell.style.fontSize = `${cellSize * 0.4}px`;
-                
                 if (num !== 0) {
                     cell.textContent = num;
                     cell.classList.add(`base-${getBase(num)}`);
                     if (num === solutionBoard[r][c]) cell.classList.add('correct');
                     else cell.classList.add('wrong');
-                } else {
-                    cell.classList.add('empty');
-                }
-
-                if (selectedCell && selectedCell.row === r && selectedCell.col === c) {
-                    cell.classList.add('selected');
-                }
-                
+                } else cell.classList.add('empty');
+                if (selectedCell && selectedCell.row === r && selectedCell.col === c) cell.classList.add('selected');
                 if (lockedCells.has(`${r}-${c}`)) cell.classList.add('locked');
-
                 cell.onclick = () => onCellClick(r, c);
                 gridContainer.appendChild(cell);
             }
@@ -151,61 +142,37 @@ document.addEventListener('DOMContentLoaded', () => {
             playAction('incorrect');
             return;
         }
-
         const clickedNum = gameBoard[row][col];
-
         if (selectedCell) {
-            const sR = selectedCell.row;
-            const sC = selectedCell.col;
-            const sNum = gameBoard[sR][sC];
-            
-            if (sR === row && sC === col) {
-                selectedCell = null;
-                renderBoard();
-                return;
-            }
-
+            const sR = selectedCell.row, sC = selectedCell.col, sNum = gameBoard[sR][sC];
+            if (sR === row && sC === col) { selectedCell = null; renderBoard(); return; }
             const isValid = (sNum === solutionBoard[row][col]);
 
             if (settings.gameMode === 'SURVIE') {
                 if (isValid) {
                     score += lockedCells.size > 0 ? 75 : 150;
-                    gameBoard[row][col] = sNum;
-                    gameBoard[sR][sC] = clickedNum;
+                    gameBoard[row][col] = sNum; gameBoard[sR][sC] = clickedNum;
                     playAction('ding');
                 } else {
                     if (lockedCells.size > 0) endGame(false);
                     else {
-                        lockedCells.add(`${sR}-${sC}`);
-                        score -= 50;
-                        playAction('incorrect');
-                        statusMsg.textContent = "ERREUR ! CASE VERROUILLÉE";
+                        lockedCells.add(`${sR}-${sC}`); score -= 50;
+                        playAction('incorrect'); statusMsg.textContent = "ERREUR ! CASE VERROUILLÉE";
                     }
                 }
-            } else { // Coups Limités
+            } else {
                 movesRemaining--;
                 if (isValid) {
-                    score += 100;
-                    gameBoard[row][col] = sNum;
-                    gameBoard[sR][sC] = clickedNum;
+                    score += 100; gameBoard[row][col] = sNum; gameBoard[sR][sC] = clickedNum;
                     playAction('ding');
-                } else {
-                    score -= 50;
-                    playAction('incorrect');
-                }
+                } else { score -= 50; playAction('incorrect'); }
                 if (movesRemaining <= 0 && !checkWin()) endGame(false);
             }
-
             selectedCell = null;
             if (checkWin()) endGame(true);
-            else {
-                updateStats();
-                renderBoard();
-            }
+            else { updateStats(); renderBoard(); }
         } else if (clickedNum !== 0) {
-            selectedCell = { row, col };
-            playAction('clic');
-            renderBoard();
+            selectedCell = { row, col }; playAction('clic'); renderBoard();
         }
     }
 
@@ -219,8 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateStats() {
-        const left = document.getElementById('info-left');
-        const right = document.getElementById('info-right');
+        const left = document.getElementById('info-left'), right = document.getElementById('info-right');
         if (settings.gameMode === 'SURVIE') {
             left.textContent = `⏱ ${Math.floor(timeElapsed / 60)}:${(timeElapsed % 60).toString().padStart(2, '0')}`;
             right.textContent = `SCORE: ${score}`;
@@ -230,54 +196,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Fin de partie et Sauvegarde ---
     function endGame(win) {
         isGameOver = true;
         clearInterval(timerInterval);
         if (win) {
             playAction('victory');
-            statusMsg.textContent = "VICTOIRE !";
+            saveScore(score); // Enregistre le score ici
             alert(`BRAVO ! Score final : ${score}`);
         } else {
             playAction('gameover');
-            statusMsg.textContent = "GAME OVER";
             alert("Partie terminée !");
         }
         startNewGame();
     }
 
     function startNewGame() {
-        isGameOver = false;
-        score = 0;
-        timeElapsed = 0;
-        lockedCells = new Set();
+        isGameOver = false; score = 0; timeElapsed = 0; lockedCells = new Set();
         solutionBoard = generateSolution();
-        
         const flatSolution = solutionBoard.flat();
         const count = Math.floor(flatSolution.length * DIFFICULTY_LEVELS[settings.difficulty]);
         playableSuites = new Set(flatSolution.sort(() => Math.random() - 0.5).slice(0, count));
-        
         let items = [...playableSuites];
         while (items.length < settings.gridSize ** 2) items.push(0);
         items.sort(() => Math.random() - 0.5);
-        
         gameBoard = [];
-        for (let i = 0; i < settings.gridSize; i++) {
-            gameBoard.push(items.splice(0, settings.gridSize));
-        }
-
-        if (settings.gameMode === 'COUPS_LIMITES') {
-            movesRemaining = Math.floor(playableSuites.size * 1.5);
-        }
-
+        for (let i = 0; i < settings.gridSize; i++) gameBoard.push(items.splice(0, settings.gridSize));
+        if (settings.gameMode === 'COUPS_LIMITES') movesRemaining = Math.floor(playableSuites.size * 1.5);
         if (settings.gameMode === 'SURVIE') {
-            timerInterval = setInterval(() => {
-                timeElapsed++;
-                updateStats();
-            }, 1000);
+            timerInterval = setInterval(() => { timeElapsed++; updateStats(); }, 1000);
         }
-
         statusMsg.textContent = "À VOUS DE JOUER !";
-        updateStats();
-        renderBoard();
+        updateStats(); renderBoard();
     }
+
+    // --- SYSTÈME DE MEILLEURS SCORES ---
+    function saveScore(newScore) {
+        let scores = JSON.parse(localStorage.getItem('puzzle9_scores')) || [];
+        const date = new Date().toLocaleDateString('fr-FR');
+        scores.push({ score: newScore, date: date });
+        scores.sort((a, b) => b.score - a.score);
+        scores = scores.slice(0, 5);
+        localStorage.setItem('puzzle9_scores', JSON.stringify(scores));
+        displayScores();
+    }
+
+    function displayScores() {
+        const list = document.getElementById('score-list');
+        if(!list) return;
+        const scores = JSON.parse(localStorage.getItem('puzzle9_scores')) || [];
+        if (scores.length > 0) {
+            list.innerHTML = scores.map(s => `<li>${s.score} pts - ${s.date}</li>`).join('');
+        } else {
+            list.innerHTML = "<li>Aucun score enregistré</li>";
+        }
+    }
+
+    // Affichage initial au chargement
+    displayScores();
 });
