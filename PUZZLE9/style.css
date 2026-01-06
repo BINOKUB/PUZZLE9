@@ -21,24 +21,21 @@ body {
     margin: 0;
     background-color: var(--bg-color);
     color: white;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Centre horizontalement sur grand écran */
+    align-items: center;     /* Centre verticalement */
     min-height: 100vh;
-    overflow-x: hidden;
-    /* Empêche le défilement inutile sur mobile */
-    touch-action: manipulation;
 }
 
 #app-container {
     width: 100%;
+    max-width: 600px;        /* Empêche le bloc de devenir trop large sur PC */
     display: flex;
     flex-direction: column;
-    align-items: center;    /* Centre horizontalement l'accueil */
-    justify-content: center; /* Centre verticalement */
+    align-items: center;    
+    justify-content: center;
     padding: 20px;
-    box-sizing: border-box;
 }
 
 /* --- ÉCRANS --- */
@@ -62,9 +59,11 @@ body {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    width: 100%;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-    margin-top: 20px;
+    width: 100%;             /* Utilise toute la largeur du container (max 600px) */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* Centre les boutons radio et le bouton commencer */
 }
 
 .neon-text {
