@@ -1,0 +1,55 @@
+:root {
+    --cyan: #00f3ff;
+    --magenta: #ff00ff;
+    --bg: #050505;
+    --glass: rgba(255, 255, 255, 0.05);
+}
+
+body {
+    margin: 0; background: var(--bg); color: white;
+    font-family: 'Segoe UI', sans-serif; overflow: hidden;
+    touch-action: manipulation;
+}
+
+#app-container {
+    height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+.neon-text {
+    color: var(--cyan); text-shadow: 0 0 15px var(--cyan); font-size: 2.5rem;
+}
+
+.glass-card {
+    background: var(--glass); padding: 20px; border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+}
+
+#game-grid {
+    display: grid; gap: 4px; padding: 10px; background: rgba(0,0,0,0.5);
+    border-radius: 10px; border: 1px solid var(--cyan);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+    margin: 20px auto;
+}
+
+.grid-cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    background: #111; border: 1px solid #222; border-radius: 4px;
+    font-weight: bold; transition: 0.2s;
+}
+
+.grid-cell.selected { border-color: var(--magenta); box-shadow: 0 0 10px var(--magenta); transform: scale(1.05); z-index: 2; }
+.grid-cell.correct { border-color: #00ff00; }
+.grid-cell.wrong { border-color: #ff0000; }
+
+/* Couleurs Base 9 Néon */
+.base-1 { color: #ff4d4d; } .base-2 { color: #4dadff; } .base-3 { color: #4dff4d; }
+.base-4 { color: #ff4dff; } .base-5 { color: #ffae4d; } .base-6 { color: #4dffff; }
+.base-7 { color: #ff4d88; } .base-8 { color: #a24dff; } .base-9 { color: #ffffff; }
+
+.hidden { display: none !important; }
+
+/* Boutons */
+.main-btn {
+    background: var(--cyan); border: none; padding: 15px 40px; border-radius: 30px;
+    font-weight: bold; cursor: pointer; box-shadow: 0 0 15px var(--cyan);
+}
