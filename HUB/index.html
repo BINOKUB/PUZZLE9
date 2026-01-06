@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BINOKUB LABS - HUB</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-sec: #888888;
+            --accent-blue: #00f3ff;
+            --accent-pink: #ff00ff;
+            --btn-bg: #222;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- EN-TÊTE --- */
+        header {
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+        
+        .brand span { color: var(--accent-blue); }
+
+        .date { font-size: 12px; color: var(--text-sec); text-transform: uppercase; }
+
+        /* --- CONTENEUR --- */
+        .app-list {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Espace entre les apps */
+        }
+
+        /* --- CARTE APP (STYLE STORE) --- */
+        .app-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            text-decoration: none;
+            color: white;
+            display: flex; /* Alignement horizontal sur PC */
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #222;
+            transition: transform 0.2s, background 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card:hover {
+            transform: scale(1.02);
+            background-color: #1a1a1a;
+            border-color: #333;
+        }
+
+        /* Pour l'effet néon sur la carte vedette */
+        .app-card.featured {
+            border: 1px solid var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+
+        /* --- CONTENU DE LA CARTE --- */
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            background: #222;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            flex-shrink: 0; /* L'icône ne rétrécit pas */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .app-details {
+            flex-grow: 1; /* Prend toute la place au milieu */
+            padding: 0 20px;
+        }
+
+        .app-details h2 { margin: 0 0 5px 0; font-size: 22px; }
+        .app-details p { margin: 0; color: var(--text-sec); font-size: 14px; line-height: 1.4; }
+        
+        .tag {
+            font-size: 10px; 
+            color: var(--accent-pink); 
+            font-weight: bold; 
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* --- BOUTON D'ACTION --- */
+        .btn-get {
+            background-color: #333;
+            color: var(--accent-blue);
+            font-weight: bold;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 14px;
+            text-transform: uppercase;
+            transition: 0.2s;
+            white-space: nowrap; /* Le texte ne passe pas à la ligne */
+        }
+
+        .app-card:hover .btn-get {
+            background-color: var(--accent-blue);
+            color: black;
+        }
+
+        /* --- STYLE POUR MOBILE (Responsive) --- */
+       /* --- STYLE POUR MOBILE (Responsive) --- */
+        @media (max-width: 600px) {
+            .app-card {
+                flex-direction: column; /* On empile tout verticalement */
+                align-items: center;    /* CENTRE tout (icône, texte, bouton) */
+                text-align: center;     /* Centre le texte de description */
+                padding: 30px 20px;     /* Un peu plus d'espace interne */
+            }
+
+            .app-icon { 
+                margin-bottom: 15px;    /* Espace sous l'icône */
+            }
+
+            .app-details { 
+                padding: 0; 
+                margin-bottom: 25px;    /* Espace sous le texte avant le bouton */
+            }
+
+            .btn-get { 
+                width: auto;            /* CORRECTION : On arrête de forcer 100% */
+                min-width: 200px;       /* On assure une taille large tactile */
+                text-align: center; 
+            }
+        }
+        
+        footer { margin-top: 60px; color: #444; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="date" id="date-jour"></div>
+        <div class="brand">BINOKUB <span>LABS</span></div>
+        <div style="width: 50px;"></div> </header>
+
+    <div class="app-list">
+
+        <a href="https://puzzle9.binokub.com/MP" class="app-card featured" target="_new">
+            <div class="app-icon" style="background: linear-gradient(135deg, #000, #1a1a2e);">🎵</div>
+            <div class="app-details">
+                <span class="tag">NOUVELLE SORTIE</span>
+                <h2>Melody Pro</h2>
+                <p>L'assistant musical ultime. Gammes, accords et improvisation. Mode Néon sombre inclus.</p>
+            </div>
+            <div class="btn-get">OUVRIR</div>
+        </a>
+
+<a href="https://puzzle9.binokub.com/DAMES/DAME-COLOR.html" class="app-card" target="_new">
+            <div class="app-icon">♟️</div>
+            <div class="app-details">
+                <span class="tag" style="color:#ffcc00">CLASSIQUE</span>
+                <h2>Jeu de Dames</h2>
+                <p>Le grand classique de la stratégie sur plateau. Anticipez les coups et capturez les pions adverses !</p>
+            </div>
+            <div class="btn-get">JOUER</div>
+        </a>
+
+        <a href="https://binokub-calculator.onrender.com/" class="app-card" target="_new">
+    <div class="app-icon" style="font-size: 50px; display: flex; justify-content: center; align-items: center;">
+        🧮
+    </div>
+    <div class="app-details">
+        <span class="tag" style="color:#ff9500">LOGIQUE</span>
+        <h2>Calculateur</h2>
+        <p>Défi de calcul Mental !</p>
+    </div>
+    <div class="btn-get">JOUER</div>
+</a>
+
+       <a href="https://puzzle9.binokub.com/GUERRE/" class="app-card" target="_new">
+                <div class="app-icon" style="font-size: 50px; display: flex; justify-content: center; align-items: center;">
+                    ⚔️
+                </div>
+                <div class="app-details">
+                    <span class="tag" style="color:#ff3b30">ACTION</span>
+                    <h2>Guerre Nombres</h2>
+                    <p>Bataille stratégique !</p>
+                </div>
+                <div class="btn-get">JOUER</div>
+            </a>
+
+        <a href="https://puzzle9.binokub.com/TICTACTO/" class="app-card" target="_new">
+    <div class="app-icon" style="text-shadow: 0 0 15px #ff00ff;">❌</div>
+    <div class="app-details">
+        <span class="tag" style="color:#00f3ff">NÉON DE LUXE</span>
+        <h2>Tic-Tac-To De Luxe</h2>
+        <p>Duel tactique contre l'IA "TOK". Graphismes rétro-éclairés et sons spatiaux.</p>
+    </div>
+    <div class="btn-get">JOUER</div>
+</a>
+
+              <a href="https://puzzle9.binokub.com/" class="app-card" target="_new">
+            <div class="app-icon">🧩</div>
+            <div class="app-details">
+                <span class="tag" style="color:#00ff66">LOGIQUE</span>
+                <h2>Puzzle 9</h2>
+                <p>Le classique jeu de réflexion pour stimuler votre esprit. Simple et addictif.</p>
+            </div>
+            <div class="btn-get">JOUER</div>
+        </a>
+
+        <div class="app-card" style="opacity: 0.5; cursor: default;">
+            <div class="app-icon">⏳</div>
+            <div class="app-details">
+                <span class="tag">BIENTÔT</span>
+                <h2>Deadline</h2>
+                <p>Jeu de stratégie et de gestion du temps.</p>
+            </div>
+            <div class="btn-get" style="background:none; border:1px solid #444; color:#666;">À VENIR</div>
+        </div>
+
+    </div>
+
+    <footer>
+        Développé par Binokub Studio © 2026
+    </footer>
+
+<script>
+        const date = new Date();
+        const options = { weekday: 'long', day: 'numeric', month: 'long' };
+        // Récupère la date en français
+        let dateDuJour = date.toLocaleDateString('fr-FR', options);
+        // Met la première lettre en majuscule (ex: "dimanche" -> "Dimanche")
+        dateDuJour = dateDuJour.charAt(0).toUpperCase() + dateDuJour.slice(1);
+        // Affiche la date
+        document.getElementById('date-jour').innerText = dateDuJour;
+    </script>
+
+</body>
+
+</html>
