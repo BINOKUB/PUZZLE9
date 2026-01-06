@@ -255,4 +255,36 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStats();
         renderBoard();
     }
+    // --- Fonction INDICE ---
+    document.getElementById('hint-btn').addEventListener('click', () => {
+        if (!selectedCell) {
+            statusMsg.textContent = "SÉLECTIONNEZ UN NUMÉRO D'ABORD";
+            return;
+        }
+        const numToFind = gameBoard[selectedCell.row][selectedCell.col];
+        for (let r = 0; r < settings.gridSize; r++) {
+            for (let c = 0; c < settings.gridSize; c++) {
+                if (solutionBoard[r][c] === numToFind) {
+                    const hintCell = document.querySelector(`#cell-${r}-${c}`);
+                    if(hintCell) {
+                        hintCell.style.boxShadow = "0 0 30px #ffffff";
+                        setTimeout(() => { hintCell.style.boxShadow = ""; }, 1000);
+                    }
+                    return;
+                }
+            }
+        }
+    });
+
+    // --- Fonction SOLUCE ---
+    document.getElementById('solution-btn').addEventListener('click', () => {
+        // Alerte de sécurité pour ne pas tricher par erreur
+        if(confirm("Afficher la solution complète ? (Score annulé)")) {
+            gameBoard = JSON.parse(JSON.stringify(solutionBoard));
+            renderBoard();
+            statusMsg.textContent = "SOLUTION AFFICHÉE";
+            score = 0;
+            updateStats();
+        }
+    });
 });
