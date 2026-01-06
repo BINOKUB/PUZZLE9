@@ -3,7 +3,7 @@
   "short_name": "Melody",
   "id": "binokub_melodypro_v1",
   "scope": "/MP/",
-  "start_url": "https://puzzle9.binokub.com/MP/MELODY-PRO.html",
+  "start_url": "https://puzzle9.binokub.com/MP/index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#00f3ff",
