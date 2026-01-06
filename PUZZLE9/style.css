@@ -1,4 +1,13 @@
 /* --- VARIABLES NÉON --- */
+html {
+    scroll-behavior: smooth;
+}
+
+.screen {
+    transition: opacity 0.5s ease-in-out;
+}
+
+
 :root {
     --cyan: #00f3ff;
     --magenta: #ff00ff;
