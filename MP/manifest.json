@@ -1,1 +1,25 @@
-
+{
+  "name": "Melody Pro",
+  "short_name": "Melody",
+  "id": "binokub_melodypro_v1",
+  "scope": "/MP/",
+  "start_url": "https://puzzle9.binokub.com/MP/MELODY-PRO.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00f3ff",
+  "description": "Système de gestion musicale Binokub",
+  "icons": [
+    {
+      "src": "https://puzzle9.binokub.com/MP/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://puzzle9.binokub.com/MP/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
