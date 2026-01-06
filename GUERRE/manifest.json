@@ -1,17 +1,26 @@
 {
-  "name": "Guerre des Nombres",
+  "id": "binokub_guerre_v1",
+  "name": "Binokub Guerre des Nombres",
   "short_name": "Guerre",
-  "id": "/GUERRE/",
-  "scope": "/GUERRE/",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#ff0000",
+  "description": "Duel mathématique stratégique par Binokub",
   "icons": [
     {
-      "src": "icon-guerre.png",
+      "src": "https://puzzle9.binokub.com/GUERRE/icon-guerre.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://puzzle9.binokub.com/GUERRE/icon-guerre.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "start_url": "https://puzzle9.binokub.com/GUERRE/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#00f3ff",
+  "scope": "/GUERRE/"
 }
