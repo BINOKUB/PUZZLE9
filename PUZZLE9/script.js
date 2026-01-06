@@ -15,11 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Audio & Vibration ---
     const sounds = {
-        clic: new Audio('clic.mp3'),
+        clic: new Audio('neon-clic.mp3'),
         ding: new Audio('ding.mp3'),
-        victory: new Audio('victory.mp3'),
-        incorrect: new Audio('incorrect.mp3'),
-        gameover: new Audio('gameover.mp3')
+        victory: new Audio('neon-victory.mp3'),
+        incorrect: new Audio('neon-error.mp3'),
+        gameover: new Audio('neon-over.mp3')
     };
 
     function playAction(type) {
