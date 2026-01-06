@@ -1,1 +1,16 @@
-
+{
+  "short_name": "TicTacTo",
+  "name": "Binokub Tic-Tac-To De Luxe",
+  "icons": [
+    {
+      "src": "icon-tictacto.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#00f3ff"
+}
