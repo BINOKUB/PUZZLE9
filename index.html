@@ -43,6 +43,49 @@
         <p>&copy; 2026 BINOKUB - Tous droits réservés</p>
     </footer>
 
+
+<script>
+    // Logique du mini-jeu flash pour la racine
+    let secretNum = Math.floor(Math.random() * 10) + 1;
+    const previewZone = document.getElementById('mini-game-preview');
+
+    function checkGuess(n) {
+        if (n === secretNum) {
+            previewZone.innerHTML = `
+                <p style="color: #00ff88; font-weight: bold;">FÉLICITATIONS ! C'était le ${n}.</p>
+                <p>Envie de plus de défis ?</p>
+                <a href="./HUB/index.html" style="color: #00f3ff; text-decoration: underline;">Direction l'Arcade →</a>
+            `;
+        } else {
+            previewZone.innerHTML = `
+                <p style="color: #ff3333;">Raté ! Essayez encore...</p>
+                <div id="btn-container"></div>
+            `;
+            generateButtons();
+        }
+    }
+
+    function generateButtons() {
+        const container = document.getElementById('btn-container') || previewZone;
+        if (!document.getElementById('btn-container')) {
+            container.innerHTML += '<div id="btn-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px;"></div>';
+        }
+        const btnBox = document.getElementById('btn-container');
+        btnBox.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.style.cssText = "background: transparent; border: 1px solid #444; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;";
+            btn.onclick = () => checkGuess(i);
+            btnBox.appendChild(btn);
+        }
+    }
+
+    // Lancement initial
+    generateButtons();
+</script>
+    
 </body>
 </html>
+
 
