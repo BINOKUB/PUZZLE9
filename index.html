@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BINOKUB - Portail Officiel</title>
@@ -145,35 +146,45 @@
         const symbols = ['♠️', '♥️', '♦️', '♣️'];
 
         function drawCards() {
-            const previewZone = document.getElementById('mini-game-preview');
-            const c1 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
-            const c2 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
-            const s1 = symbols[Math.floor(Math.random() * symbols.length)];
-            const s2 = symbols[Math.floor(Math.random() * symbols.length)];
-            
-            const total = c1.v + c2.v;
-            const isRed1 = (s1 === '♥️' || s1 === '♦️');
-            const isRed2 = (s2 === '♥️' || s2 === '♦️');
+    const previewZone = document.getElementById('mini-game-preview');
+    const c1 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
+    const c2 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
+    const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+    const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+    
+    const total = c1.v + c2.v;
+    const isRed1 = (s1 === '♥️' || s1 === '♦️');
+    const isRed2 = (s2 === '♥️' || s2 === '♦️');
 
-            let html = `
-                <div class="card-container">
-                    <div class="card-ui" style="color: ${isRed1 ? 'red' : 'black'}">${c1.n}<br>${s1}</div>
-                    <div class="card-ui" style="color: ${isRed2 ? 'red' : 'black'}">${c2.n}<br>${s2}</div>
-                </div>
-                <p>Total : <strong>${total}</strong></p>
-            `;
+    let html = `
+        <div class="card-container">
+            <div class="card-ui ${total === 21 ? 'winner-glow' : ''}" style="color: ${isRed1 ? 'red' : 'black'}">${c1.n}<br>${s1}</div>
+            <div class="card-ui ${total === 21 ? 'winner-glow' : ''}" style="color: ${isRed2 ? 'red' : 'black'}">${c2.n}<br>${s2}</div>
+        </div>
+        <p>Total : <strong>${total}</strong></p>
+    `;
 
-            if (total === 21) {
-                html += `<p class="win-text">🎉 BLACKJACK ! 21 ! 🎉</p>
-                         <p>La chance vous sourit aujourd'hui !</p>`;
-            } else {
-                html += `<p>Dommage... Essayez encore !</p>
-                         <button onclick="drawCards()" class="retry-btn">Re-piocher</button>`;
-            }
-            previewZone.innerHTML = html;
-        }
+    if (total === 21) {
+        html += `<p class="win-text">🎉 BLACKJACK ! 21 ! 🎉</p>
+                 <p>La chance vous sourit aujourd'hui !</p>
+                 <button onclick="drawCards()" class="retry-btn">Rejouer</button>`;
+        
+        // --- LANCER LES CONFETTIS ---
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#00f3ff', '#ff00ff', '#ffffff']
+        });
+    } else {
+        html += `<p>Dommage... Essayez encore !</p>
+                 <button onclick="drawCards()" class="retry-btn">Re-piocher</button>`;
+    }
+    previewZone.innerHTML = html;
+}
 
         window.onload = updateDailyInfo;
     </script>
 </body>
 </html>
+
