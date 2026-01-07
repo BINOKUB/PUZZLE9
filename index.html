@@ -1,197 +1,141 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BINOKUB - Portail Officiel</title>
+    <title>BINOKUB - Jouer pour une Cause</title>
     <link rel="stylesheet" href="style-portail.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* Styles spécifiques pour le jeu de cartes */
-        .card-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
+        /* Styles pour le mini-jeu Poker/Solidarité */
+        .card-container { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
         .card-ui {
-            background: white;
-            color: black;
-            width: 60px;
-            height: 90px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.4rem;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            border: 2px solid #ddd;
+            background: white; color: black; width: 65px; height: 95px; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.5rem; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
             animation: flipIn 0.5s ease-out;
         }
-        @keyframes flipIn {
-            from { transform: rotateY(90deg); opacity: 0; }
-            to { transform: rotateY(0deg); opacity: 1; }
+        @keyframes flipIn { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0deg); opacity: 1; } }
+        
+        #reward-selector {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin: 15px 0;
+            border: 1px solid rgba(0, 243, 255, 0.3);
         }
-        .win-text {
-            color: #00ff88;
-            font-weight: bold;
-            text-shadow: 0 0 10px #00ff88;
-            font-size: 1.2rem;
-        }
-        .retry-btn {
-            background: transparent;
-            border: 1px solid var(--cyan);
-            color: var(--cyan);
-            padding: 8px 15px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-         .winner-glow {
-    border: 2px solid #00ff88 !important;
-    box-shadow: 0 0 30px #00ff88 !important;
-    transform: scale(1.1);
-    transition: 0.3s;
-}
+        .payout-option { cursor: pointer; margin: 0 10px; font-weight: bold; }
+        .winner-glow { border: 3px solid #00ff88 !important; box-shadow: 0 0 30px #00ff88 !important; transform: scale(1.1); }
+        .win-msg { color: #00ff88; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <header>
         <h1 class="neon-title">BINOKUB</h1>
+        <p style="color:var(--magenta); font-size: 0.8rem; letter-spacing: 2px;">LOGIQUE • JEUX • SOLIDARITÉ</p>
     </header>
 
     <main id="main-container">
         
         <section id="daily-info" class="glass-card">
-            <div id="info-header">📅 L'INFO DU JOUR</div>
-            <div id="info-content">
-                <p></p>
-            </div>
+            <div id="info-header">📅 PENSÉE DU JOUR</div>
+            <div id="info-content"><p>"Chargement de l'inspiration..."</p></div>
         </section>
 
-        <div class="ad-slot ad-top">
-            <span class="ad-label">PUBLICITÉ</span>
-        </div>
+        <section class="glass-card" style="border-color: var(--magenta);">
+            <h3 style="margin-top:0; color: var(--magenta);">🎗️ Soutenir la Recherche</h3>
+            <p style="font-size: 0.9rem;">Chaque partie jouée ici est une incitation à la générosité. Aidez-nous à faire échec au cancer.</p>
+            <a href="#" style="color: white; font-weight: bold; text-decoration: underline;">Faire un don officiel</a>
+        </section>
 
         <section id="action-zone" class="glass-card">
             <div id="mini-game-preview">
-                <h3>Le Défi du 21</h3>
-                <p>Piochez 2 cartes. Faites 21 pour gagner !</p>
-                <button onclick="drawCards()" class="main-btn" style="padding: 12px 30px;">PIOCHER</button>
+                <h3>Le Défi de Jak</h3>
+                <p>Comment préférez-vous gagner ?</p>
+                
+                <div id="reward-selector">
+                    <input type="radio" id="gold" name="payout" value="gold" checked>
+                    <label for="gold" class="payout-option">💰 OR</label>
+                    <input type="radio" id="cash" name="payout" value="cash">
+                    <label for="cash" class="payout-option">💵 ARGENT</label>
+                </div>
+
+                <button onclick="drawCards()" class="main-btn" style="padding: 12px 35px;">PIOCHER</button>
             </div>
             
             <hr style="width:100%; border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 25px 0;">
-            
-            <a href="./HUB/index.html" class="main-btn" style="background: var(--magenta); box-shadow: 0 0 20px var(--magenta);">🎮 VOIR TOUS LES JEUX</a>
+            <a href="./HUB/index.html" class="main-btn" style="background: var(--magenta); box-shadow: 0 0 20px var(--magenta);">🎮 ACCÉDER À L'ARCADE</a>
         </section>
-
-        <div class="ad-slot ad-bottom">
-            <span class="ad-label">PUBLICITÉ</span>
-        </div>
 
     </main>
 
-    <footer>
-        <p>&copy; 2026 BINOKUB - Tous droits réservés</p>
-    </footer>
-
     <script>
-        // 1. BANQUE DE 31 CITATIONS
+        // SONS (Sources libres)
+        const sfxGold = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+        const sfxCash = new Audio('https://assets.mixkit.co/active_storage/sfx/1126/1126-preview.mp3');
+
         const citations = [
-            "La logique vous mènera d'un point A à un point B. L'imagination partout ailleurs. – Albert Einstein",
-            "Le jeu est la forme la plus élevée de la recherche. – Albert Einstein",
-            "On n'arrête pas de jouer parce qu'on vieillit, on vieillit parce qu'on arrête de jouer. – George Bernard Shaw",
-            "La simplicité est la sophistication suprême. – Léonard de Vinci",
-            "La vie est comme une partie d'échecs : pour gagner, il faut faire un choix.",
-            "Le succès, c'est tomber sept fois et se relever huit. – Proverbe japonais",
-            "Rien n'est impossible, seule la limite de notre esprit l'est.",
-            "Un problème sans solution est un problème mal posé. – Albert Einstein",
-            "Le plus grand risque est de n'en prendre aucun. – Mark Zuckerberg",
-            "La patience est la clé de toutes les solutions.",
-            "Apprendre, c'est comme ramer à contre-courant : dès qu'on s'arrête, on recule.",
-            "L'esprit est comme un parachute : il ne fonctionne que s'il est ouvert.",
-            "Le secret du bonheur, c'est de regarder chaque situation avec un œil neuf.",
-            "La logique est l'anatomie de la pensée. – John Locke",
-            "Ce n'est pas que je suis si intelligent, c'est que je reste plus longtemps avec les problèmes.",
-            "La vie est un défi à relever, un bonheur à mériter, une aventure à tenter.",
-            "Rien n'est permanent, sauf le changement. – Héraclite",
-            "La seule façon de faire du bon travail est d'aimer ce que vous faites. – Steve Jobs",
-            "Chaque difficulté rencontrée doit être une occasion de nouveau progrès.",
-            "Le génie, c'est 1% d'inspiration et 99% de transpiration. – Thomas Edison",
-            "Il n'y a pas de chemins courts vers les endroits qui en valent la peine.",
-            "La sagesse commence par l'émerveillement. – Socrate",
-            "Le succès n'est pas final, l'échec n'est pas fatal : c'est le courage de continuer.",
-            "La réflexion est la clé de la réussite.",
-            "Mieux vaut une tête bien faite qu'une tête bien pleine. – Montaigne",
-            "L'expérience est le nom que chacun donne à ses erreurs. – Oscar Wilde",
-            "La persévérance est un talisman pour la vie.",
-            "Tout ce que vous pouvez imaginer est réel. – Pablo Picasso",
-            "La mémoire est le miroir dans lequel nous regardons notre passé.",
-            "Celui qui déplace une montagne commence par déplacer de petites pierres. – Confucius",
-            "Aujourd'hui est une nouvelle chance de battre son propre record."
+            "L'espoir est le moteur de toute guérison.",
+            "La logique nous aide à comprendre, le cœur nous aide à agir.",
+            "Chaque petit geste est une pierre à l'édifice de la recherche.",
+            "Le jeu est plus beau quand il sert une noble cause."
+            // Ajoute tes 31 citations ici...
         ];
 
         function updateDailyInfo() {
             const infoContent = document.querySelector('#info-content p');
-            const today = new Date();
-            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
-            const index = dayOfYear % citations.length;
+            const index = Math.floor(Math.random() * citations.length);
             if(infoContent) infoContent.textContent = `"${citations[index]}"`;
         }
 
-        // 2. LOGIQUE DU JEU "21 FLASH"
-        const cardDeck = [
-            {n: 'A', v: 11}, {n: '2', v: 2}, {n: '3', v: 3}, {n: '4', v: 4}, {n: '5', v: 5},
-            {n: '6', v: 6}, {n: '7', v: 7}, {n: '8', v: 8}, {n: '9', v: 9}, {n: '10', v: 10},
-            {n: 'J', v: 10}, {n: 'Q', v: 10}, {n: 'K', v: 10}
+        const deck = [
+            {n:'A', v:11}, {n:'2', v:2}, {n:'3', v:3}, {n:'4', v:4}, {n:'5', v:5},
+            {n:'6', v:6}, {n:'7', v:7}, {n:'8', v:8}, {n:'9', v:9}, {n:'10', v:10},
+            {n:'J', v:10}, {n:'Q', v:10}, {n:'K', v:10}
         ];
         const symbols = ['♠️', '♥️', '♦️', '♣️'];
 
         function drawCards() {
-    const previewZone = document.getElementById('mini-game-preview');
-    const c1 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
-    const c2 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
-    const s1 = symbols[Math.floor(Math.random() * symbols.length)];
-    const s2 = symbols[Math.floor(Math.random() * symbols.length)];
-    
-    const total = c1.v + c2.v;
-    const isRed1 = (s1 === '♥️' || s1 === '♦️');
-    const isRed2 = (s2 === '♥️' || s2 === '♦️');
+            const preview = document.getElementById('mini-game-preview');
+            const c1 = deck[Math.floor(Math.random() * deck.length)];
+            const c2 = deck[Math.floor(Math.random() * deck.length)];
+            const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+            const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+            const total = c1.v + c2.v;
 
-    let html = `
-        <div class="card-container">
-            <div class="card-ui ${total === 21 ? 'winner-glow' : ''}" style="color: ${isRed1 ? 'red' : 'black'}">${c1.n}<br>${s1}</div>
-            <div class="card-ui ${total === 21 ? 'winner-glow' : ''}" style="color: ${isRed2 ? 'red' : 'black'}">${c2.n}<br>${s2}</div>
-        </div>
-        <p>Total : <strong>${total}</strong></p>
-    `;
+            // --- 4 CHANCES DE GAGNER ---
+            const is21 = (total === 21);
+            const isPairAs = (c1.n === 'A' && c2.n === 'A');
+            const isDoubleTen = (c1.v === 10 && c2.v === 10);
+            const isLuckySeven = (total === 7 || total === 11);
 
-    if (total === 21) {
-        html += `<p class="win-text">🎉 BLACKJACK ! 21 ! 🎉</p>
-                 <p>La chance vous sourit aujourd'hui !</p>
-                 <button onclick="drawCards()" class="retry-btn">Rejouer</button>`;
-        
-        // --- LANCER LES CONFETTIS ---
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#00f3ff', '#ff00ff', '#ffffff']
-        });
-    } else {
-        html += `<p>Dommage... Essayez encore !</p>
-                 <button onclick="drawCards()" class="retry-btn">Re-piocher</button>`;
-    }
-    previewZone.innerHTML = html;
-}
+            const isWinner = is21 || isPairAs || isDoubleTen || isLuckySeven;
+
+            let html = `
+                <div class="card-container">
+                    <div class="card-ui ${isWinner ? 'winner-glow' : ''}">${c1.n}<br>${s1}</div>
+                    <div class="card-ui ${isWinner ? 'winner-glow' : ''}">${c2.n}<br>${s2}</div>
+                </div>
+                <p>Total : <strong>${total}</strong></p>
+            `;
+
+            if (isWinner) {
+                const type = document.querySelector('input[name="payout"]:checked').value;
+                if(type === 'gold') sfxGold.play(); else sfxCash.play();
+
+                html += `<p class="win-msg">✨ VICTOIRE ! ✨</p>`;
+                if(is21) html += `<p>BLACKJACK ! Un coup parfait.</p>`;
+                else if(isPairAs) html += `<p>DOUBLE AS ! La chance rare.</p>`;
+                else html += `<p>Belle combinaison gagnante !</p>`;
+                
+                html += `<button onclick="drawCards()" class="main-btn" style="margin-top:10px">REJOUER</button>`;
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else {
+                html += `<p>Pas cette fois... Jak garde la main.</p>
+                         <button onclick="drawCards()" class="retry-btn">RE-PIOCHER</button>`;
+            }
+            preview.innerHTML = html;
+        }
 
         window.onload = updateDailyInfo;
     </script>
 </body>
 </html>
-
-
