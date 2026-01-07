@@ -7,13 +7,12 @@
     <link rel="stylesheet" href="style-portail.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* Styles pour le mini-jeu Poker/Solidarité */
         .card-container { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
         .card-ui {
             background: white; color: black; width: 65px; height: 95px; border-radius: 8px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-weight: bold; font-size: 1.5rem; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            animation: flipIn 0.5s ease-out;
+            animation: flipIn 0.3s ease-out; /* Animation plus rapide pour la réactivité */
         }
         @keyframes flipIn { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0deg); opacity: 1; } }
         
@@ -24,6 +23,13 @@
         .payout-option { cursor: pointer; margin: 0 10px; font-weight: bold; }
         .winner-glow { border: 3px solid #00ff88 !important; box-shadow: 0 0 30px #00ff88 !important; transform: scale(1.1); }
         .win-msg { color: #00ff88; font-weight: bold; margin-top: 10px; }
+        
+        /* Style pour le bouton re-piocher pour qu'il soit bien visible et tactile */
+        .retry-btn {
+            background: #222; border: 1px solid var(--cyan); color: var(--cyan);
+            padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;
+            font-family: inherit; font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -34,7 +40,6 @@
     </header>
 
     <main id="main-container">
-        
         <section id="daily-info" class="glass-card">
             <div id="info-header">📅 PENSÉE DU JOUR</div>
             <div id="info-content"><p>"Chargement de l'inspiration..."</p></div>
@@ -43,32 +48,27 @@
         <section class="glass-card" style="border-color: var(--magenta);">
             <h3 style="margin-top:0; color: var(--magenta);">🎗️ Soutenir la Recherche</h3>
             <p style="font-size: 0.9rem;">Chaque partie jouée ici est une incitation à la générosité. Aidez-nous à faire échec au cancer.</p>
-            <a href="https://cancer.ca/fr/ways-to-give/personal-donation" style="color: white; font-weight: bold; text-decoration: underline;">Faire un don officiel</a>
+            <a href="https://cancer.ca/fr/ways-to-give/personal-donation" target="_blank" style="color: white; font-weight: bold; text-decoration: underline;">Faire un don officiel</a>
         </section>
 
         <section id="action-zone" class="glass-card">
             <div id="mini-game-preview">
                 <h3>Le Défi de Jak</h3>
                 <p>Comment préférez-vous gagner ?</p>
-                
                 <div id="reward-selector">
                     <input type="radio" id="gold" name="payout" value="gold" checked>
                     <label for="gold" class="payout-option">💰 OR</label>
                     <input type="radio" id="cash" name="payout" value="cash">
                     <label for="cash" class="payout-option">💵 ARGENT</label>
                 </div>
-
-                <button onclick="drawCards()" class="main-btn" style="padding: 12px 35px;">PIOCHER</button>
+                <button id="draw-button" onclick="drawCards()" class="main-btn" style="padding: 12px 35px;">PIOCHER</button>
             </div>
-            
             <hr style="width:100%; border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 25px 0;">
             <a href="./HUB/index.html" class="main-btn" style="background: var(--magenta); box-shadow: 0 0 20px var(--magenta);">🎮 ACCÉDER À L'ARCADE</a>
         </section>
-
     </main>
 
     <script>
-        // SONS (Sources libres)
         const sfxGold = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
         const sfxCash = new Audio('https://assets.mixkit.co/active_storage/sfx/1126/1126-preview.mp3');
 
@@ -76,8 +76,8 @@
             "L'espoir est le moteur de toute guérison.",
             "La logique nous aide à comprendre, le cœur nous aide à agir.",
             "Chaque petit geste est une pierre à l'édifice de la recherche.",
-            "Le jeu est plus beau quand il sert une noble cause."
-            // Ajoute tes 31 citations ici...
+            "Le jeu est plus beau quand il sert une noble cause.",
+            "La volonté de gagner est importante, mais la volonté de se battre est vitale."
         ];
 
         function updateDailyInfo() {
@@ -93,56 +93,55 @@
         ];
         const symbols = ['♠️', '♥️', '♦️', '♣️'];
 
-       function drawCards() {
-    const preview = document.getElementById('mini-game-preview');
-    const c1 = deck[Math.floor(Math.random() * deck.length)];
-    const c2 = deck[Math.floor(Math.random() * deck.length)];
-    const s1 = symbols[Math.floor(Math.random() * symbols.length)];
-    const s2 = symbols[Math.floor(Math.random() * symbols.length)];
-    
-    const total = c1.v + c2.v;
-    
-    // --- NOUVELLES CHANCES DE GAGNER (Équilibrage Jak) ---
-    const isPerfect = (total === 21); // Blackjack
-    const isNearPerfect = (total === 20); // Le "Presque 21"
-    const isLuckyColor = (s1 === s2); // Paire de couleur (ex: deux Coeurs)
-    const isLuckySum = (total === 7 || total === 11); // Chiffres Chance
+        function drawCards() {
+            const preview = document.getElementById('mini-game-preview');
+            
+            // On réinitialise les sons pour permettre un clic rapide
+            sfxGold.pause(); sfxGold.currentTime = 0;
+            sfxCash.pause(); sfxCash.currentTime = 0;
 
-    const isWinner = isPerfect || isNearPerfect || isLuckyColor || isLuckySum;
+            const c1 = deck[Math.floor(Math.random() * deck.length)];
+            const c2 = deck[Math.floor(Math.random() * deck.length)];
+            const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+            const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+            const total = c1.v + c2.v;
 
-    let html = `
-        <div class="card-container">
-            <div class="card-ui ${isWinner ? 'winner-glow' : ''}" style="color: ${(s1==='♥️'||s1==='♦️')?'red':'black'}">${c1.n}<br>${s1}</div>
-            <div class="card-ui ${isWinner ? 'winner-glow' : ''}" style="color: ${(s2==='♥️'||s2==='♦️')?'red':'black'}">${c2.n}<br>${s2}</div>
-        </div>
-        <p>Total : <strong>${total}</strong></p>
-    `;
+            // --- ÉQUILIBRAGE GÉNÉREUX ---
+            const isPerfect = (total === 21);
+            const isNearPerfect = (total === 20 || total === 19); // Ajout du 19 pour gagner plus souvent
+            const isLuckyColor = (s1 === s2); 
+            const isLuckySum = (total === 7 || total === 11 || total === 18); // Ajout du 18
 
-    if (isWinner) {
-        // Déclenchement du son choisi
-        const type = document.querySelector('input[name="payout"]:checked').value;
-        if(type === 'gold') sfxGold.play(); else sfxCash.play();
+            const isWinner = isPerfect || isNearPerfect || isLuckyColor || isLuckySum;
 
-        html += `<p class="win-msg">✨ VICTOIRE ! ✨</p>`;
-        
-        // Message personnalisé selon le gain
-        if(isPerfect) html += `<p><strong>BLACKJACK !</strong> Coup de maître !</p>`;
-        else if(isNearPerfect) html += `<p><strong>20 !</strong> Jak s'incline.</p>`;
-        else if(isLuckyColor) html += `<p><strong>Double ${s1} !</strong> Quelle élégance.</p>`;
-        else html += `<p>La chance vous sourit !</p>`;
-        
-        html += `<button onclick="drawCards()" class="main-btn" style="margin-top:10px">REJOUER</button>`;
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00f3ff', '#ff00ff', '#ffffff'] });
-    } else {
-        html += `<p>Presque ! Jak garde les jetons...</p>
-                 <button onclick="drawCards()" class="retry-btn">RE-PIOCHER</button>`;
-    }
-    preview.innerHTML = html;
-}
+            let html = `
+                <div class="card-container">
+                    <div class="card-ui ${isWinner ? 'winner-glow' : ''}" style="color: ${(s1==='♥️'||s1==='♦️')?'red':'black'}">${c1.n}<br>${s1}</div>
+                    <div class="card-ui ${isWinner ? 'winner-glow' : ''}" style="color: ${(s2==='♥️'||s2==='♦️')?'red':'black'}">${c2.n}<br>${s2}</div>
+                </div>
+                <p>Total : <strong>${total}</strong></p>
+            `;
+
+            if (isWinner) {
+                const type = document.querySelector('input[name="payout"]:checked').value;
+                if(type === 'gold') sfxGold.play().catch(e => {}); 
+                else sfxCash.play().catch(e => {});
+
+                html += `<p class="win-msg">✨ VICTOIRE ! ✨</p>`;
+                if(isPerfect) html += `<p><strong>BLACKJACK !</strong> Jak s'incline.</p>`;
+                else if(isLuckyColor) html += `<p><strong>Double ${s1} !</strong> Chance visuelle.</p>`;
+                else html += `<p>Une très belle main gagnante !</p>`;
+                
+                html += `<button onclick="drawCards()" class="main-btn" style="margin-top:10px">REJOUER</button>`;
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            } else {
+                html += `<p>Jak garde la main cette fois...</p>
+                         <button onclick="drawCards()" class="retry-btn">RE-PIOCHER</button>`;
+            }
+            preview.innerHTML = html;
+        }
 
         window.onload = updateDailyInfo;
     </script>
 </body>
 </html>
-
-
