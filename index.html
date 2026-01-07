@@ -5,6 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BINOKUB - Portail Officiel</title>
     <link rel="stylesheet" href="style-portail.css">
+    <style>
+        /* Styles spécifiques pour le jeu de cartes */
+        .card-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .card-ui {
+            background: white;
+            color: black;
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.4rem;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            border: 2px solid #ddd;
+            animation: flipIn 0.5s ease-out;
+        }
+        @keyframes flipIn {
+            from { transform: rotateY(90deg); opacity: 0; }
+            to { transform: rotateY(0deg); opacity: 1; }
+        }
+        .win-text {
+            color: #00ff88;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff88;
+            font-size: 1.2rem;
+        }
+        .retry-btn {
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+    </style>
 </head>
 <body>
 
@@ -13,6 +58,7 @@
     </header>
 
     <main id="main-container">
+        
         <section id="daily-info" class="glass-card">
             <div id="info-header">📅 L'INFO DU JOUR</div>
             <div id="info-content">
@@ -24,17 +70,22 @@
             <span class="ad-label">PUBLICITÉ</span>
         </div>
 
-        <section id="action-zone">
-            <a href="./HUB/index.html" class="main-btn">🎮 ACCÉDER À L'ARCADE</a>
-            
+        <section id="action-zone" class="glass-card">
             <div id="mini-game-preview">
-                <p>Défi du jour : Devinez le chiffre !</p>
-                </div>
+                <h3>Le Défi du 21</h3>
+                <p>Piochez 2 cartes. Faites 21 pour gagner !</p>
+                <button onclick="drawCards()" class="main-btn" style="padding: 12px 30px;">PIOCHER</button>
+            </div>
+            
+            <hr style="width:100%; border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 25px 0;">
+            
+            <a href="./HUB/index.html" class="main-btn" style="background: var(--magenta); box-shadow: 0 0 20px var(--magenta);">🎮 VOIR TOUS LES JEUX</a>
         </section>
 
         <div class="ad-slot ad-bottom">
             <span class="ad-label">PUBLICITÉ</span>
         </div>
+
     </main>
 
     <footer>
@@ -42,30 +93,31 @@
     </footer>
 
     <script>
+        // 1. BANQUE DE 31 CITATIONS
         const citations = [
             "La logique vous mènera d'un point A à un point B. L'imagination partout ailleurs. – Albert Einstein",
             "Le jeu est la forme la plus élevée de la recherche. – Albert Einstein",
             "On n'arrête pas de jouer parce qu'on vieillit, on vieillit parce qu'on arrête de jouer. – George Bernard Shaw",
             "La simplicité est la sophistication suprême. – Léonard de Vinci",
-            "La vie est comme une partie d'échecs : pour gagner, il faut faire un choix. – Proverbe",
+            "La vie est comme une partie d'échecs : pour gagner, il faut faire un choix.",
             "Le succès, c'est tomber sept fois et se relever huit. – Proverbe japonais",
             "Rien n'est impossible, seule la limite de notre esprit l'est.",
             "Un problème sans solution est un problème mal posé. – Albert Einstein",
             "Le plus grand risque est de n'en prendre aucun. – Mark Zuckerberg",
             "La patience est la clé de toutes les solutions.",
-            "Apprendre, c'est comme ramer à contre-courant : dès qu'on s'arrête, on recule. – Lao Tseu",
-            "L'esprit est comme un parachute : il ne fonctionne que s'il est ouvert. – Frank Zappa",
+            "Apprendre, c'est comme ramer à contre-courant : dès qu'on s'arrête, on recule.",
+            "L'esprit est comme un parachute : il ne fonctionne que s'il est ouvert.",
             "Le secret du bonheur, c'est de regarder chaque situation avec un œil neuf.",
             "La logique est l'anatomie de la pensée. – John Locke",
-            "Ce n'est pas que je suis si intelligent, c'est que je reste plus longtemps avec les problèmes. – Albert Einstein",
-            "La vie est un défi à relever, un bonheur à mériter, une aventure à tenter. – Mère Teresa",
+            "Ce n'est pas que je suis si intelligent, c'est que je reste plus longtemps avec les problèmes.",
+            "La vie est un défi à relever, un bonheur à mériter, une aventure à tenter.",
             "Rien n'est permanent, sauf le changement. – Héraclite",
             "La seule façon de faire du bon travail est d'aimer ce que vous faites. – Steve Jobs",
-            "Chaque difficulté rencontrée doit être une occasion de nouveau progrès. – Pierre de Coubertin",
+            "Chaque difficulté rencontrée doit être une occasion de nouveau progrès.",
             "Le génie, c'est 1% d'inspiration et 99% de transpiration. – Thomas Edison",
             "Il n'y a pas de chemins courts vers les endroits qui en valent la peine.",
             "La sagesse commence par l'émerveillement. – Socrate",
-            "Le succès n'est pas final, l'échec n'est pas fatal : c'est le courage de continuer qui compte. – Winston Churchill",
+            "Le succès n'est pas final, l'échec n'est pas fatal : c'est le courage de continuer.",
             "La réflexion est la clé de la réussite.",
             "Mieux vaut une tête bien faite qu'une tête bien pleine. – Montaigne",
             "L'expérience est le nom que chacun donne à ses erreurs. – Oscar Wilde",
@@ -84,44 +136,44 @@
             if(infoContent) infoContent.textContent = `"${citations[index]}"`;
         }
 
-        let secretNum = Math.floor(Math.random() * 10) + 1;
-        const previewZone = document.getElementById('mini-game-preview');
+        // 2. LOGIQUE DU JEU "21 FLASH"
+        const cardDeck = [
+            {n: 'A', v: 11}, {n: '2', v: 2}, {n: '3', v: 3}, {n: '4', v: 4}, {n: '5', v: 5},
+            {n: '6', v: 6}, {n: '7', v: 7}, {n: '8', v: 8}, {n: '9', v: 9}, {n: '10', v: 10},
+            {n: 'J', v: 10}, {n: 'Q', v: 10}, {n: 'K', v: 10}
+        ];
+        const symbols = ['♠️', '♥️', '♦️', '♣️'];
 
-        function checkGuess(n) {
-            if (n === secretNum) {
-                previewZone.innerHTML = `
-                    <p style="color: #00ff88; font-weight: bold;">FÉLICITATIONS ! C'était le ${n}.</p>
-                    <p>Envie de plus de défis ?</p>
-                    <a href="./HUB/index.html" style="color: #00f3ff; text-decoration: underline;">Direction l'Arcade →</a>
-                `;
+        function drawCards() {
+            const previewZone = document.getElementById('mini-game-preview');
+            const c1 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
+            const c2 = cardDeck[Math.floor(Math.random() * cardDeck.length)];
+            const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+            const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            const total = c1.v + c2.v;
+            const isRed1 = (s1 === '♥️' || s1 === '♦️');
+            const isRed2 = (s2 === '♥️' || s2 === '♦️');
+
+            let html = `
+                <div class="card-container">
+                    <div class="card-ui" style="color: ${isRed1 ? 'red' : 'black'}">${c1.n}<br>${s1}</div>
+                    <div class="card-ui" style="color: ${isRed2 ? 'red' : 'black'}">${c2.n}<br>${s2}</div>
+                </div>
+                <p>Total : <strong>${total}</strong></p>
+            `;
+
+            if (total === 21) {
+                html += `<p class="win-text">🎉 BLACKJACK ! 21 ! 🎉</p>
+                         <p>La chance vous sourit aujourd'hui !</p>`;
             } else {
-                previewZone.innerHTML = `<p style="color: #ff3333;">Raté ! Essayez encore...</p>`;
-                generateButtons();
+                html += `<p>Dommage... Essayez encore !</p>
+                         <button onclick="drawCards()" class="retry-btn">Re-piocher</button>`;
             }
+            previewZone.innerHTML = html;
         }
 
-        function generateButtons() {
-            let btnBox = document.getElementById('btn-container');
-            if (!btnBox) {
-                btnBox = document.createElement('div');
-                btnBox.id = 'btn-container';
-                btnBox.style.cssText = "display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px;";
-                previewZone.appendChild(btnBox);
-            }
-            btnBox.innerHTML = '';
-            for (let i = 1; i <= 10; i++) {
-                const btn = document.createElement('button');
-                btn.textContent = i;
-                btn.style.cssText = "background: transparent; border: 1px solid #444; color: white; padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s;";
-                btn.onclick = () => checkGuess(i);
-                btnBox.appendChild(btn);
-            }
-        }
-
-        window.onload = () => {
-            updateDailyInfo();
-            generateButtons();
-        };
+        window.onload = updateDailyInfo;
     </script>
 </body>
 </html>
