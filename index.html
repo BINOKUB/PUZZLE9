@@ -93,49 +93,55 @@
         ];
         const symbols = ['♠️', '♥️', '♦️', '♣️'];
 
-        function drawCards() {
-            const preview = document.getElementById('mini-game-preview');
-            const c1 = deck[Math.floor(Math.random() * deck.length)];
-            const c2 = deck[Math.floor(Math.random() * deck.length)];
-            const s1 = symbols[Math.floor(Math.random() * symbols.length)];
-            const s2 = symbols[Math.floor(Math.random() * symbols.length)];
-            const total = c1.v + c2.v;
+       function drawCards() {
+    const preview = document.getElementById('mini-game-preview');
+    const c1 = deck[Math.floor(Math.random() * deck.length)];
+    const c2 = deck[Math.floor(Math.random() * deck.length)];
+    const s1 = symbols[Math.floor(Math.random() * symbols.length)];
+    const s2 = symbols[Math.floor(Math.random() * symbols.length)];
+    
+    const total = c1.v + c2.v;
+    
+    // --- NOUVELLES CHANCES DE GAGNER (Équilibrage Jak) ---
+    const isPerfect = (total === 21); // Blackjack
+    const isNearPerfect = (total === 20); // Le "Presque 21"
+    const isLuckyColor = (s1 === s2); // Paire de couleur (ex: deux Coeurs)
+    const isLuckySum = (total === 7 || total === 11); // Chiffres Chance
 
-            // --- 4 CHANCES DE GAGNER ---
-            const is21 = (total === 21);
-            const isPairAs = (c1.n === 'A' && c2.n === 'A');
-            const isDoubleTen = (c1.v === 10 && c2.v === 10);
-            const isLuckySeven = (total === 7 || total === 11);
+    const isWinner = isPerfect || isNearPerfect || isLuckyColor || isLuckySum;
 
-            const isWinner = is21 || isPairAs || isDoubleTen || isLuckySeven;
+    let html = `
+        <div class="card-container">
+            <div class="card-ui ${isWinner ? 'winner-glow' : ''}" style="color: ${(s1==='♥️'||s1==='♦️')?'red':'black'}">${c1.n}<br>${s1}</div>
+            <div class="card-ui ${isWinner ? 'winner-glow' : ''}" style="color: ${(s2==='♥️'||s2==='♦️')?'red':'black'}">${c2.n}<br>${s2}</div>
+        </div>
+        <p>Total : <strong>${total}</strong></p>
+    `;
 
-            let html = `
-                <div class="card-container">
-                    <div class="card-ui ${isWinner ? 'winner-glow' : ''}">${c1.n}<br>${s1}</div>
-                    <div class="card-ui ${isWinner ? 'winner-glow' : ''}">${c2.n}<br>${s2}</div>
-                </div>
-                <p>Total : <strong>${total}</strong></p>
-            `;
+    if (isWinner) {
+        // Déclenchement du son choisi
+        const type = document.querySelector('input[name="payout"]:checked').value;
+        if(type === 'gold') sfxGold.play(); else sfxCash.play();
 
-            if (isWinner) {
-                const type = document.querySelector('input[name="payout"]:checked').value;
-                if(type === 'gold') sfxGold.play(); else sfxCash.play();
-
-                html += `<p class="win-msg">✨ VICTOIRE ! ✨</p>`;
-                if(is21) html += `<p>BLACKJACK ! Un coup parfait.</p>`;
-                else if(isPairAs) html += `<p>DOUBLE AS ! La chance rare.</p>`;
-                else html += `<p>Belle combinaison gagnante !</p>`;
-                
-                html += `<button onclick="drawCards()" class="main-btn" style="margin-top:10px">REJOUER</button>`;
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            } else {
-                html += `<p>Pas cette fois... Jak garde la main.</p>
-                         <button onclick="drawCards()" class="retry-btn">RE-PIOCHER</button>`;
-            }
-            preview.innerHTML = html;
-        }
+        html += `<p class="win-msg">✨ VICTOIRE ! ✨</p>`;
+        
+        // Message personnalisé selon le gain
+        if(isPerfect) html += `<p><strong>BLACKJACK !</strong> Coup de maître !</p>`;
+        else if(isNearPerfect) html += `<p><strong>20 !</strong> Jak s'incline.</p>`;
+        else if(isLuckyColor) html += `<p><strong>Double ${s1} !</strong> Quelle élégance.</p>`;
+        else html += `<p>La chance vous sourit !</p>`;
+        
+        html += `<button onclick="drawCards()" class="main-btn" style="margin-top:10px">REJOUER</button>`;
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00f3ff', '#ff00ff', '#ffffff'] });
+    } else {
+        html += `<p>Presque ! Jak garde les jetons...</p>
+                 <button onclick="drawCards()" class="retry-btn">RE-PIOCHER</button>`;
+    }
+    preview.innerHTML = html;
+}
 
         window.onload = updateDailyInfo;
     </script>
 </body>
 </html>
+
