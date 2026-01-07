@@ -3,56 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BINOKUB - Arcade</title>
-    <style>
-        body {
-            background-color: #050505;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .neon-title {
-            color: #00f3ff;
-            text-shadow: 0 0 15px #00f3ff;
-            font-size: 3rem;
-            letter-spacing: 5px;
-            margin-bottom: 40px;
-        }
-        .game-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            padding: 20px;
-            border-radius: 15px;
-            text-decoration: none;
-            color: white;
-            width: 280px;
-            transition: 0.3s;
-            text-align: center;
-        }
-        .game-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
-            border-color: #00f3ff;
-        }
-        .game-card h2 { margin: 0; color: #00f3ff; }
-        .game-card p { font-size: 0.8rem; color: #888; }
-    </style>
+    <title>BINOKUB - Portail Officiel</title>
+    <link rel="stylesheet" href="style-portail.css">
 </head>
 <body>
 
-    <h1 class="neon-title">BINOKUB</h1>
+    <header>
+        <h1 class="neon-title">BINOKUB</h1>
+    </header>
 
-    <a href="./PUZZLE9/index.html" class="game-card">
-        <h2>PUZZLE 9</h2>
-        <p>Le jeu de logique mathématique néon.</p>
-    </a>
+    <main id="main-container">
+        
+        <section id="daily-info" class="glass-card">
+            <div id="info-header">📅 L'INFO DU JOUR</div>
+            <div id="info-content">
+                <p>"Le succès est la somme de petits efforts répétés jour après jour."</p>
+            </div>
+        </section>
 
-    <div style="margin-top: 20px; color: #444; font-size: 0.7rem;">D'autres jeux arrivent bientôt...</div>
+        <div class="ad-slot ad-top">
+            <span class="ad-label">PUBLICITÉ</span>
+            </div>
+
+        <section id="action-zone">
+            <a href="./HUB/index.html" class="main-btn">🎮 ACCÉDER À L'ARCADE</a>
+            
+            <div id="mini-game-preview">
+                <p>Défi du jour : Devinez le chiffre !</p>
+                </div>
+        </section>
+
+        <div class="ad-slot ad-bottom">
+            <span class="ad-label">PUBLICITÉ</span>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2024 BINOKUB - Tous droits réservés</p>
+    </footer>
 
 </body>
 </html>
