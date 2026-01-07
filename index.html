@@ -13,17 +13,16 @@
     </header>
 
     <main id="main-container">
-        
         <section id="daily-info" class="glass-card">
             <div id="info-header">📅 L'INFO DU JOUR</div>
             <div id="info-content">
-                <p>"Le succès est la somme de petits efforts répétés jour après jour."</p>
+                <p></p>
             </div>
         </section>
 
         <div class="ad-slot ad-top">
             <span class="ad-label">PUBLICITÉ</span>
-            </div>
+        </div>
 
         <section id="action-zone">
             <a href="./HUB/index.html" class="main-btn">🎮 ACCÉDER À L'ARCADE</a>
@@ -36,56 +35,93 @@
         <div class="ad-slot ad-bottom">
             <span class="ad-label">PUBLICITÉ</span>
         </div>
-
     </main>
 
     <footer>
         <p>&copy; 2026 BINOKUB - Tous droits réservés</p>
     </footer>
 
+    <script>
+        const citations = [
+            "La logique vous mènera d'un point A à un point B. L'imagination partout ailleurs. – Albert Einstein",
+            "Le jeu est la forme la plus élevée de la recherche. – Albert Einstein",
+            "On n'arrête pas de jouer parce qu'on vieillit, on vieillit parce qu'on arrête de jouer. – George Bernard Shaw",
+            "La simplicité est la sophistication suprême. – Léonard de Vinci",
+            "La vie est comme une partie d'échecs : pour gagner, il faut faire un choix. – Proverbe",
+            "Le succès, c'est tomber sept fois et se relever huit. – Proverbe japonais",
+            "Rien n'est impossible, seule la limite de notre esprit l'est.",
+            "Un problème sans solution est un problème mal posé. – Albert Einstein",
+            "Le plus grand risque est de n'en prendre aucun. – Mark Zuckerberg",
+            "La patience est la clé de toutes les solutions.",
+            "Apprendre, c'est comme ramer à contre-courant : dès qu'on s'arrête, on recule. – Lao Tseu",
+            "L'esprit est comme un parachute : il ne fonctionne que s'il est ouvert. – Frank Zappa",
+            "Le secret du bonheur, c'est de regarder chaque situation avec un œil neuf.",
+            "La logique est l'anatomie de la pensée. – John Locke",
+            "Ce n'est pas que je suis si intelligent, c'est que je reste plus longtemps avec les problèmes. – Albert Einstein",
+            "La vie est un défi à relever, un bonheur à mériter, une aventure à tenter. – Mère Teresa",
+            "Rien n'est permanent, sauf le changement. – Héraclite",
+            "La seule façon de faire du bon travail est d'aimer ce que vous faites. – Steve Jobs",
+            "Chaque difficulté rencontrée doit être une occasion de nouveau progrès. – Pierre de Coubertin",
+            "Le génie, c'est 1% d'inspiration et 99% de transpiration. – Thomas Edison",
+            "Il n'y a pas de chemins courts vers les endroits qui en valent la peine.",
+            "La sagesse commence par l'émerveillement. – Socrate",
+            "Le succès n'est pas final, l'échec n'est pas fatal : c'est le courage de continuer qui compte. – Winston Churchill",
+            "La réflexion est la clé de la réussite.",
+            "Mieux vaut une tête bien faite qu'une tête bien pleine. – Montaigne",
+            "L'expérience est le nom que chacun donne à ses erreurs. – Oscar Wilde",
+            "La persévérance est un talisman pour la vie.",
+            "Tout ce que vous pouvez imaginer est réel. – Pablo Picasso",
+            "La mémoire est le miroir dans lequel nous regardons notre passé.",
+            "Celui qui déplace une montagne commence par déplacer de petites pierres. – Confucius",
+            "Aujourd'hui est une nouvelle chance de battre son propre record."
+        ];
 
-<script>
-    // Logique du mini-jeu flash pour la racine
-    let secretNum = Math.floor(Math.random() * 10) + 1;
-    const previewZone = document.getElementById('mini-game-preview');
+        function updateDailyInfo() {
+            const infoContent = document.querySelector('#info-content p');
+            const today = new Date();
+            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const index = dayOfYear % citations.length;
+            if(infoContent) infoContent.textContent = `"${citations[index]}"`;
+        }
 
-    function checkGuess(n) {
-        if (n === secretNum) {
-            previewZone.innerHTML = `
-                <p style="color: #00ff88; font-weight: bold;">FÉLICITATIONS ! C'était le ${n}.</p>
-                <p>Envie de plus de défis ?</p>
-                <a href="./HUB/index.html" style="color: #00f3ff; text-decoration: underline;">Direction l'Arcade →</a>
-            `;
-        } else {
-            previewZone.innerHTML = `
-                <p style="color: #ff3333;">Raté ! Essayez encore...</p>
-                <div id="btn-container"></div>
-            `;
+        let secretNum = Math.floor(Math.random() * 10) + 1;
+        const previewZone = document.getElementById('mini-game-preview');
+
+        function checkGuess(n) {
+            if (n === secretNum) {
+                previewZone.innerHTML = `
+                    <p style="color: #00ff88; font-weight: bold;">FÉLICITATIONS ! C'était le ${n}.</p>
+                    <p>Envie de plus de défis ?</p>
+                    <a href="./HUB/index.html" style="color: #00f3ff; text-decoration: underline;">Direction l'Arcade →</a>
+                `;
+            } else {
+                previewZone.innerHTML = `<p style="color: #ff3333;">Raté ! Essayez encore...</p>`;
+                generateButtons();
+            }
+        }
+
+        function generateButtons() {
+            let btnBox = document.getElementById('btn-container');
+            if (!btnBox) {
+                btnBox = document.createElement('div');
+                btnBox.id = 'btn-container';
+                btnBox.style.cssText = "display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px;";
+                previewZone.appendChild(btnBox);
+            }
+            btnBox.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.style.cssText = "background: transparent; border: 1px solid #444; color: white; padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s;";
+                btn.onclick = () => checkGuess(i);
+                btnBox.appendChild(btn);
+            }
+        }
+
+        window.onload = () => {
+            updateDailyInfo();
             generateButtons();
-        }
-    }
-
-    function generateButtons() {
-        const container = document.getElementById('btn-container') || previewZone;
-        if (!document.getElementById('btn-container')) {
-            container.innerHTML += '<div id="btn-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px;"></div>';
-        }
-        const btnBox = document.getElementById('btn-container');
-        btnBox.innerHTML = '';
-        for (let i = 1; i <= 10; i++) {
-            const btn = document.createElement('button');
-            btn.textContent = i;
-            btn.style.cssText = "background: transparent; border: 1px solid #444; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer;";
-            btn.onclick = () => checkGuess(i);
-            btnBox.appendChild(btn);
-        }
-    }
-
-    // Lancement initial
-    generateButtons();
-</script>
-    
+        };
+    </script>
 </body>
 </html>
-
-
