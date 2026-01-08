@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BINOKUB | Patience</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --cyan: #00f3ff; --magenta: #ff00ff; --neon-green: #39ff14; --bg: #050505;
+            --card-w: 65px; --card-h: 95px;
+        }
+        @media (min-width: 768px) { :root { --card-w: 90px; --card-h: 130px; } }
+
+        body {
+            background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* Top Bar Mobile-Friendly */
+        .game-header {
+            width: 100%; max-width: 800px; display: flex; justify-content: space-between;
+            align-items: center; padding: 10px; border-bottom: 1px solid var(--cyan);
+        }
+
+        .pile-container { display: flex; gap: 15px; margin: 20px 0; }
+        
+        .placeholder {
+            width: var(--card-w); height: var(--card-h);
+            border: 2px dashed rgba(0, 243, 255, 0.3); border-radius: 8px;
+            position: relative; display: flex; justify-content: center; align-items: center;
+        }
+
+        /* Colonnes en grille responsive */
+        #columns-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 colonnes sur mobile */
+            gap: 10px; width: 100%; max-width: 800px;
+        }
+        @media (min-width: 768px) { #columns-grid { grid-template-columns: repeat(9, 1fr); } }
+
+        .column {
+            background: rgba(255, 255, 255, 0.03); border-radius: 10px;
+            padding: 5px; min-height: 150px; display: flex; flex-direction: column;
+            align-items: center; border: 1px solid rgba(0, 243, 255, 0.1);
+            transition: 0.3s;
+        }
+        .column.target-ready { border: 2px solid var(--magenta); box-shadow: 0 0 15px var(--magenta); }
+
+        .card {
+            width: var(--card-w); height: var(--card-h);
+            background: #fff; color: #000; border-radius: 6px;
+            font-weight: bold; position: relative; cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5); user-select: none;
+            transition: transform 0.2s;
+        }
+        .card.selected { border: 3px solid var(--magenta); transform: scale(1.05); z-index: 100; }
+        .card-back { background: linear-gradient(135deg, #1a1a1a, #333); border: 1px solid var(--cyan); }
+        
+        .card-val { position: absolute; top: 5px; left: 8px; font-size: 1.1rem; }
+        .card-base { position: absolute; bottom: 5px; right: 8px; font-size: 0.8rem; opacity: 0.5; }
+
+        .base-1 { color: #ff3131; } .base-2 { color: #00f3ff; } .base-3 { color: #39ff14; }
+        .base-4 { color: #ff00ff; } .base-5 { color: #ffea00; } .base-6 { color: #ff5e00; }
+        .base-7 { color: #0026ff; } .base-8 { color: #ffffff; } .base-9 { color: #7b00ff; }
+
+        button {
+            background: var(--cyan); border: none; padding: 10px 20px; border-radius: 20px;
+            font-weight: bold; cursor: pointer; box-shadow: 0 0 10px var(--cyan);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <div style="color:var(--cyan); font-weight:bold;">BINOKUB PATIENCE</div>
+        <button onclick="startGame()">NOUVELLE PARTIE</button>
+    </div>
+
+    <div class="pile-container">
+        <div id="stock-pile" class="placeholder" onclick="drawCard()"></div>
+        <div id="waste-pile" class="placeholder"></div>
+    </div>
+
+    <div id="columns-grid"></div>
+
+    <script>
+        let stock = [], waste = [], foundations = Array(10).fill().map(() => []);
+        let selectedCard = null;
+
+        function getBase(n) { return (n - 1) % 9 + 1; }
+
+        function startGame() {
+            stock = []; waste = []; foundations = Array(10).fill().map(() => []);
+            selectedCard = null;
+            let cards = [];
+            for (let i = 1; i <= 81; i++) cards.push({ num: i, base: getBase(i) });
+            stock = cards.sort(() => Math.random() - 0.5);
+            render();
+        }
+
+        function drawCard() {
+            if (stock.length > 0) {
+                waste.push(stock.pop());
+                selectedCard = null;
+            } else if (waste.length > 0) {
+                stock = waste.reverse();
+                waste = [];
+            }
+            render();
+        }
+
+        function selectCardFromWaste() {
+            if (waste.length === 0) return;
+            selectedCard = waste[waste.length - 1];
+            render();
+        }
+
+        function moveToFoundation(targetBase) {
+            if (!selectedCard) return;
+            if (selectedCard.base === targetBase) {
+                foundations[targetBase].push(waste.pop());
+                foundations[targetBase].sort((a,b) => a.num - b.num);
+                selectedCard = null;
+                checkWin();
+            } else {
+                alert("Mauvaise base !");
+            }
+            render();
+        }
+
+        function render() {
+            // Rendu Stock
+            const stockEl = document.getElementById('stock-pile');
+            stockEl.innerHTML = stock.length > 0 ? `<div class="card card-back"></div>` : `<span style="font-size:2rem">🔄</span>`;
+
+            // Rendu Waste
+            const wasteEl = document.getElementById('waste-pile');
+            wasteEl.innerHTML = '';
+            if (waste.length > 0) {
+                const card = waste[waste.length - 1];
+                const cardEl = document.createElement('div');
+                cardEl.className = `card base-${card.base} ${selectedCard === card ? 'selected' : ''}`;
+                cardEl.innerHTML = `<div class="card-val">${card.num}</div><div class="card-base">B${card.base}</div>`;
+                cardEl.onclick = (e) => { e.stopPropagation(); selectCardFromWaste(); };
+                wasteEl.appendChild(cardEl);
+            }
+
+            // Rendu Grille
+            const grid = document.getElementById('columns-grid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const col = document.createElement('div');
+                col.className = `column ${selectedCard && selectedCard.base === i ? 'target-ready' : ''}`;
+                col.innerHTML = `<div style="font-size:0.7rem; color:var(--cyan); margin-bottom:5px;">BASE ${i}</div>`;
+                col.onclick = () => moveToFoundation(i);
+
+                if (foundations[i].length > 0) {
+                    const top = foundations[i][foundations[i].length - 1];
+                    const cardEl = document.createElement('div');
+                    cardEl.className = `card base-${top.base}`;
+                    cardEl.innerHTML = `<div class="card-val">${top.num}</div><div style="position:absolute; bottom:5px; left:8px; font-size:0.6rem;">${foundations[i].length} cartes</div>`;
+                    col.appendChild(cardEl);
+                } else {
+                    const ph = document.createElement('div');
+                    ph.className = 'placeholder';
+                    ph.style.width = '100%'; ph.style.height = '60px';
+                    col.appendChild(ph);
+                }
+                grid.appendChild(col);
+            }
+        }
+
+        function checkWin() {
+            if (foundations.slice(1).every(f => f.length === 9)) {
+                confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+                alert("PATIENCE TERMINÉE ! Magnifique victoire !");
+            }
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
