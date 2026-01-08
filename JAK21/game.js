@@ -1,4 +1,7 @@
-let balance = parseInt(localStorage.getItem('jak_capital')) || 0;
+// Initialisation du capital (500 par défaut si vide)
+let balance = parseInt(localStorage.getItem('jak_capital'));
+if (isNaN(balance)) balance = 500;
+
 let currentBet = 0, deck = [], playerHand = [], jakHand = [];
 
 const jakTalk = {
@@ -9,6 +12,7 @@ const jakTalk = {
     bankruptcy: ["C'est à sec... Mais Jak ne laisse jamais un partenaire au bord de la route."]
 };
 
+// --- EFFETS VISUELS ---
 function launchConfetti() {
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00f3ff', '#ff00ff', '#39ff14'] });
 }
@@ -26,6 +30,7 @@ function jakSpeak(cat) {
     typeWriter(jakTalk[cat][Math.floor(Math.random() * jakTalk[cat].length)]);
 }
 
+// --- INTERFACE ---
 function updateUI() {
     const balEl = document.getElementById('balance-display');
     balEl.innerText = "$" + balance.toLocaleString();
@@ -35,7 +40,8 @@ function updateUI() {
         balEl.className = 'balance-box status-red';
     } else {
         balEl.className = 'balance-box status-green';
-        localStorage.removeItem('jak_loan'); // Si le solde remonte, on considère le prêt remboursé/fini
+        // Si le solde dépasse 500, on considère le prêt remboursé
+        if (balance > 500) localStorage.removeItem('jak_loan');
     }
     
     document.getElementById('current-bet-display').innerText = "MISE : $" + currentBet.toLocaleString();
@@ -56,6 +62,7 @@ function createChips() {
     });
 }
 
+// --- LOGIQUE DE JEU ---
 function createDeck() {
     const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
     const symbols = ['♠', '♥', '♦', '♣']; deck = [];
@@ -124,12 +131,21 @@ function endGame(res) {
     winBox.style.display = 'block';
     
     if (res === 'win') {
+        let pScore = getScore(playerHand);
         let gain = currentBet * 2;
-        if (getScore(playerHand) === 21 && playerHand.length === 2) gain = currentBet * 2.5;
-        winBox.innerHTML = "GAGNÉ !<br>+$" + gain.toLocaleString();
-        balance += gain; winBox.style.color = "var(--neon-green)";
+        let isBJ = (pScore === 21 && playerHand.length === 2);
+        
+        if (isBJ) {
+            gain = currentBet * 2.5;
+            winBox.innerHTML = "BLACKJACK !<br>+$" + gain.toLocaleString();
+        } else {
+            winBox.innerHTML = "GAGNÉ !<br>+$" + gain.toLocaleString();
+        }
+        
+        balance += gain; 
+        winBox.style.color = "var(--neon-green)";
         launchConfetti();
-        donationZone.style.display = 'block'; // Affiche le don
+        donationZone.style.display = 'block'; 
     } else if (res === 'draw') {
         balance += currentBet; winBox.innerText = "PUSH"; winBox.style.color = "var(--cyan)";
     } else {
@@ -140,20 +156,26 @@ function endGame(res) {
     currentBet = 0;
     updateUI();
 
-    // LE JEU RESTE FIGÉ : On montre le bouton "Continuer" au lieu de recharger
+    // Apparition du bouton CONTINUER
     setTimeout(() => {
         if (balance < 20) {
             document.getElementById('loan-modal').style.display = 'flex';
         } else {
-            nextRoundZone.style.display = 'block'; // Le joueur clique quand il veut
+            nextRoundZone.style.display = 'block'; 
         }
     }, 1500);
 }
 
+// --- ACTIONS CLIC ---
 window.onload = () => { updateUI(); createChips(); };
-function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
 
-// GESTION DU PRÊT
+function resetBet() { 
+    balance += currentBet; 
+    currentBet = 0; 
+    updateUI(); 
+    createChips(); 
+}
+
 function acceptLoan() { 
     balance = 500; 
     localStorage.setItem('jak_capital', 500); 
@@ -162,7 +184,6 @@ function acceptLoan() {
 }
 
 function declineLoan() { 
-    // On réinitialise tout avant de partir pour que le prochain jeu soit neuf
     localStorage.removeItem('jak_capital'); 
     localStorage.removeItem('jak_loan'); 
     window.location.href = "index.html"; 
