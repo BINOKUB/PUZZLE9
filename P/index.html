@@ -8,22 +8,22 @@
     <style>
         :root {
             --cyan: #00f3ff; --magenta: #ff00ff; --neon-green: #39ff14; --bg: #050505;
-            --card-w: 65px; --card-h: 95px;
+            --card-w: 60px; --card-h: 85px;
         }
-        @media (min-width: 768px) { :root { --card-w: 90px; --card-h: 130px; } }
+        @media (min-width: 768px) { :root { --card-w: 80px; --card-h: 110px; } }
 
         body {
             background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
             margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
         }
 
-        /* Top Bar Mobile-Friendly */
         .game-header {
             width: 100%; max-width: 800px; display: flex; justify-content: space-between;
             align-items: center; padding: 10px; border-bottom: 1px solid var(--cyan);
         }
 
-        .pile-container { display: flex; gap: 15px; margin: 20px 0; }
+        .pile-container { display: flex; gap: 15px; margin: 15px 0; }
         
         .placeholder {
             width: var(--card-w); height: var(--card-h);
@@ -31,50 +31,58 @@
             position: relative; display: flex; justify-content: center; align-items: center;
         }
 
-        /* Colonnes en grille responsive */
-        #columns-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 colonnes sur mobile */
-            gap: 10px; width: 100%; max-width: 800px;
+        /* Disposition inspirée du Solitaire (5 sur 4) */
+        .columns-layout {
+            display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 800px;
         }
-        @media (min-width: 768px) { #columns-grid { grid-template-columns: repeat(9, 1fr); } }
+        .row-5, .row-4 { display: flex; justify-content: center; gap: 8px; width: 100%; }
 
         .column {
-            background: rgba(255, 255, 255, 0.03); border-radius: 10px;
-            padding: 5px; min-height: 150px; display: flex; flex-direction: column;
-            align-items: center; border: 1px solid rgba(0, 243, 255, 0.1);
-            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.03); border-radius: 8px;
+            padding: 5px; width: var(--card-w); min-height: 110px; 
+            display: flex; flex-direction: column; align-items: center;
+            border: 1px solid rgba(0, 243, 255, 0.1); transition: 0.3s;
         }
-        .column.target-ready { border: 2px solid var(--magenta); box-shadow: 0 0 15px var(--magenta); }
+        /* L'illumination ne se déclenche QUE via le bouton Hint */
+        .column.hint-active { border: 2px solid var(--magenta); box-shadow: 0 0 15px var(--magenta); }
 
         .card {
             width: var(--card-w); height: var(--card-h);
             background: #fff; color: #000; border-radius: 6px;
             font-weight: bold; position: relative; cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5); user-select: none;
-            transition: transform 0.2s;
         }
-        .card.selected { border: 3px solid var(--magenta); transform: scale(1.05); z-index: 100; }
-        .card-back { background: linear-gradient(135deg, #1a1a1a, #333); border: 1px solid var(--cyan); }
+        .card.selected { border: 3px solid var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+        .card-back { background: linear-gradient(135deg, #111, #222); border: 1px solid var(--cyan); }
         
-        .card-val { position: absolute; top: 5px; left: 8px; font-size: 1.1rem; }
-        .card-base { position: absolute; bottom: 5px; right: 8px; font-size: 0.8rem; opacity: 0.5; }
+        .card-val { position: absolute; top: 4px; left: 6px; font-size: 1rem; }
+        .card-base-hint { position: absolute; bottom: 4px; right: 6px; font-size: 0.6rem; opacity: 0.3; }
 
+        /* Couleurs de Jak */
         .base-1 { color: #ff3131; } .base-2 { color: #00f3ff; } .base-3 { color: #39ff14; }
         .base-4 { color: #ff00ff; } .base-5 { color: #ffea00; } .base-6 { color: #ff5e00; }
         .base-7 { color: #0026ff; } .base-8 { color: #ffffff; } .base-9 { color: #7b00ff; }
 
+        .controls { display: flex; gap: 10px; margin-top: 10px; }
         button {
-            background: var(--cyan); border: none; padding: 10px 20px; border-radius: 20px;
-            font-weight: bold; cursor: pointer; box-shadow: 0 0 10px var(--cyan);
+            background: transparent; color: var(--cyan); border: 1px solid var(--cyan);
+            padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;
         }
+        button:hover { background: var(--cyan); color: #000; }
+
+        .footer-zone { margin-top: 20px; text-align: center; max-width: 400px; }
+        .partner-logo { width: 150px; opacity: 0.8; margin-top: 10px; }
+        .jak-msg { font-style: italic; color: var(--cyan); font-size: 0.9rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="game-header">
-        <div style="color:var(--cyan); font-weight:bold;">BINOKUB PATIENCE</div>
-        <button onclick="startGame()">NOUVELLE PARTIE</button>
+        <div style="color:var(--cyan); font-weight:bold;">JAK PATIENCE</div>
+        <div class="controls">
+            <button onclick="useHint()">HINT</button>
+            <button onclick="startGame()">NEW</button>
+        </div>
     </div>
 
     <div class="pile-container">
@@ -82,7 +90,15 @@
         <div id="waste-pile" class="placeholder"></div>
     </div>
 
-    <div id="columns-grid"></div>
+    <div class="columns-layout">
+        <div id="row-top" class="row-5"></div>
+        <div id="row-bottom" class="row-4"></div>
+    </div>
+
+    <div class="footer-zone">
+        <div id="jak-talk" class="jak-msg">"Calculez la base pour placer votre carte."</div>
+        <img src="../CANCER-DU-SANG-DU-CANADA.jpg" class="partner-logo">
+    </div>
 
     <script>
         let stock = [], waste = [], foundations = Array(10).fill().map(() => []);
@@ -96,6 +112,7 @@
             let cards = [];
             for (let i = 1; i <= 81; i++) cards.push({ num: i, base: getBase(i) });
             stock = cards.sort(() => Math.random() - 0.5);
+            document.getElementById('jak-talk').innerText = '"Bonne chance, partenaire."';
             render();
         }
 
@@ -104,7 +121,7 @@
                 waste.push(stock.pop());
                 selectedCard = null;
             } else if (waste.length > 0) {
-                stock = waste.reverse();
+                stock = waste.map(c => ({...c})).reverse();
                 waste = [];
             }
             render();
@@ -116,65 +133,80 @@
             render();
         }
 
+        function useHint() {
+            if (!selectedCard) {
+                document.getElementById('jak-talk').innerText = '"Choisissez d\'abord une carte !"';
+                return;
+            }
+            const correctCol = document.getElementById(`col-${selectedCard.base}`);
+            correctCol.classList.add('hint-active');
+            setTimeout(() => correctCol.classList.remove('hint-active'), 1000);
+        }
+
         function moveToFoundation(targetBase) {
             if (!selectedCard) return;
             if (selectedCard.base === targetBase) {
                 foundations[targetBase].push(waste.pop());
                 foundations[targetBase].sort((a,b) => a.num - b.num);
                 selectedCard = null;
+                render();
                 checkWin();
             } else {
-                alert("Mauvaise base !");
+                document.getElementById('jak-talk').innerText = '"Erreur de calcul ? Réessayez."';
             }
-            render();
+        }
+
+        function createCardEl(card, isWaste = false) {
+            const el = document.createElement('div');
+            el.className = `card base-${card.base} ${selectedCard === card ? 'selected' : ''}`;
+            el.innerHTML = `<div class="card-val">${card.num}</div>`;
+            if (isWaste) el.onclick = (e) => { e.stopPropagation(); selectCardFromWaste(); };
+            return el;
         }
 
         function render() {
-            // Rendu Stock
+            // Stock
             const stockEl = document.getElementById('stock-pile');
-            stockEl.innerHTML = stock.length > 0 ? `<div class="card card-back"></div>` : `<span style="font-size:2rem">🔄</span>`;
+            stockEl.innerHTML = stock.length > 0 ? `<div class="card card-back"></div>` : `<span>🔄</span>`;
 
-            // Rendu Waste
+            // Waste
             const wasteEl = document.getElementById('waste-pile');
             wasteEl.innerHTML = '';
-            if (waste.length > 0) {
-                const card = waste[waste.length - 1];
-                const cardEl = document.createElement('div');
-                cardEl.className = `card base-${card.base} ${selectedCard === card ? 'selected' : ''}`;
-                cardEl.innerHTML = `<div class="card-val">${card.num}</div><div class="card-base">B${card.base}</div>`;
-                cardEl.onclick = (e) => { e.stopPropagation(); selectCardFromWaste(); };
-                wasteEl.appendChild(cardEl);
-            }
+            if (waste.length > 0) wasteEl.appendChild(createCardEl(waste[waste.length - 1], true));
 
-            // Rendu Grille
-            const grid = document.getElementById('columns-grid');
-            grid.innerHTML = '';
+            // Grille
+            const rowTop = document.getElementById('row-top');
+            const rowBottom = document.getElementById('row-bottom');
+            rowTop.innerHTML = ''; rowBottom.innerHTML = '';
+
             for (let i = 1; i <= 9; i++) {
                 const col = document.createElement('div');
-                col.className = `column ${selectedCard && selectedCard.base === i ? 'target-ready' : ''}`;
-                col.innerHTML = `<div style="font-size:0.7rem; color:var(--cyan); margin-bottom:5px;">BASE ${i}</div>`;
+                col.className = 'column';
+                col.id = `col-${i}`;
+                col.innerHTML = `<div style="font-size:0.6rem; color:var(--cyan); margin-bottom:3px;">B${i}</div>`;
                 col.onclick = () => moveToFoundation(i);
 
                 if (foundations[i].length > 0) {
                     const top = foundations[i][foundations[i].length - 1];
-                    const cardEl = document.createElement('div');
-                    cardEl.className = `card base-${top.base}`;
-                    cardEl.innerHTML = `<div class="card-val">${top.num}</div><div style="position:absolute; bottom:5px; left:8px; font-size:0.6rem;">${foundations[i].length} cartes</div>`;
-                    col.appendChild(cardEl);
+                    const c = createCardEl(top);
+                    c.innerHTML += `<div style="position:absolute; bottom:2px; right:4px; font-size:0.5rem; opacity:0.5">${foundations[i].length}</div>`;
+                    col.appendChild(c);
                 } else {
                     const ph = document.createElement('div');
                     ph.className = 'placeholder';
-                    ph.style.width = '100%'; ph.style.height = '60px';
+                    ph.style.width = '100%'; ph.style.height = '100%';
                     col.appendChild(ph);
                 }
-                grid.appendChild(col);
+                
+                if (i <= 5) rowTop.appendChild(col);
+                else rowBottom.appendChild(col);
             }
         }
 
         function checkWin() {
             if (foundations.slice(1).every(f => f.length === 9)) {
                 confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
-                alert("PATIENCE TERMINÉE ! Magnifique victoire !");
+                document.getElementById('jak-talk').innerText = '"Partie parfaite ! Vous avez l\'oeil."';
             }
         }
 
