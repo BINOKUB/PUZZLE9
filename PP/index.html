@@ -42,12 +42,28 @@
             max-width: 450px;
         }
 
-        .grid-cell {
-            aspect-ratio: 1; width: 100%;
-            background: #111; border: 1px solid rgba(0, 243, 255, 0.3);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 0.8rem; font-weight: bold; cursor: pointer;
-            transition: all 0.2s; border-radius: 4px; color: #fff;
+       .grid-cell {
+            aspect-ratio: 1; 
+            width: 100%;
+            background: #111; 
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            
+            /* --- CENTRAGE CHIRURGICAL --- */
+            display: flex;
+            justify-content: center; /* Centre horizontalement */
+            align-items: center;     /* Centre verticalement */
+            text-align: center;
+            padding: 0;              /* Supprime les marges internes parasites */
+            line-height: 0;          /* Neutralise la hauteur de ligne du texte */
+            /* ---------------------------- */
+
+            font-size: 0.75rem;      /* Légèrement réduit pour les nombres à 4 chiffres */
+            font-weight: bold; 
+            cursor: pointer;
+            transition: all 0.2s; 
+            border-radius: 4px; 
+            color: #fff;
+            box-sizing: border-box;
         }
 
         .grid-cell:hover:not(.orphan):not(.is-paired) {
