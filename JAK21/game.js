@@ -15,7 +15,7 @@ function launchConfetti() {
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#00f3ff', '#ff00ff', '#39ff14']
+        colors: ['#00f3ff', '#ff00ff', '#39ff14'] // Couleurs BINOKUB
     });
 }
 
@@ -32,7 +32,7 @@ function jakSpeak(cat) {
     typeWriter(jakTalk[cat][Math.floor(Math.random() * jakTalk[cat].length)]);
 }
 
-// --- INTERFACE ---
+// --- INTERFACE ET JETONS ---
 function updateUI() {
     const balEl = document.getElementById('balance-display');
     balEl.innerText = "$" + balance.toLocaleString();
@@ -59,7 +59,7 @@ function createChips() {
     });
 }
 
-// --- LOGIQUE DE JEU ---
+// --- MOTEUR DE JEU ---
 function createDeck() {
     const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
     const symbols = ['♠', '♥', '♦', '♣'];
@@ -86,6 +86,7 @@ function startDeal() {
     document.getElementById('bet-area').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
     document.getElementById('win-display').style.display = 'none';
+    document.getElementById('donation-zone').style.display = 'none'; // Cacher le bouton de don du tour précédent
     createDeck();
     playerHand = [deck.pop(), deck.pop()]; jakHand = [deck.pop(), deck.pop()];
     renderHand(playerHand, 'player-cards'); renderHand(jakHand, 'jak-cards', true);
@@ -118,10 +119,11 @@ function playerStay() {
     }, 800);
 }
 
-// --- FIN DE MANCHE (CORRIGÉ) ---
+// --- FIN DE MANCHE ET DON ---
 function endGame(res) {
     jakSpeak(res);
     const winBox = document.getElementById('win-display');
+    const donationZone = document.getElementById('donation-zone');
     winBox.style.display = 'block';
     
     if (res === 'win') {
@@ -135,7 +137,13 @@ function endGame(res) {
         }
         balance += gain; 
         winBox.style.color = "var(--neon-green)";
-        launchConfetti();
+        launchConfetti(); //
+
+        // Apparition soyeuse du bouton de don
+        setTimeout(() => {
+            donationZone.style.display = 'block';
+        }, 1200);
+
     } else if (res === 'draw') {
         balance += currentBet; 
         winBox.innerText = "PUSH : $" + currentBet.toLocaleString() + " RENDUS";
@@ -144,33 +152,24 @@ function endGame(res) {
         winBox.innerText = "PERDU..."; 
         winBox.style.color = "var(--neon-red)";
     }
-
-    if (res === 'win') {
-        // ... (ton code de gain actuel)
-        
-        // On affiche la zone de don après 1 seconde pour laisser voir les confettis
-        setTimeout(() => {
-            document.getElementById('donation-zone').style.display = 'block';
-        }, 1000);
-        
-        launchConfetti();
-    }
     
     localStorage.setItem('jak_capital', balance);
     currentBet = 0;
     updateUI();
 
+    // On laisse du temps pour le don en cas de victoire
+    let reloadTime = (res === 'win') ? 8000 : 4500;
+
     setTimeout(() => {
         if (balance < 20) {
-            jakSpeak('bankruptcy');
-            document.getElementById('loan-modal').style.display = 'flex';
+            document.getElementById('loan-modal').style.display = 'flex'; //
         } else {
             window.location.reload(); 
         }
-    }, 4500);
+    }, reloadTime);
 }
 
-// --- ACTIONS CLIC ---
+// --- INITIALISATION ET ACTIONS ---
 window.onload = () => { updateUI(); createChips(); };
 function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
 function acceptLoan() { balance = 500; localStorage.setItem('jak_capital', balance); localStorage.setItem('jak_loan', 'true'); window.location.reload(); }
