@@ -144,6 +144,17 @@ function endGame(res) {
         winBox.innerText = "PERDU..."; 
         winBox.style.color = "var(--neon-red)";
     }
+
+    if (res === 'win') {
+        // ... (ton code de gain actuel)
+        
+        // On affiche la zone de don après 1 seconde pour laisser voir les confettis
+        setTimeout(() => {
+            document.getElementById('donation-zone').style.display = 'block';
+        }, 1000);
+        
+        launchConfetti();
+    }
     
     localStorage.setItem('jak_capital', balance);
     currentBet = 0;
