@@ -1,7 +1,4 @@
-// Initialisation du capital (500 par défaut si vide)
-let balance = parseInt(localStorage.getItem('jak_capital'));
-if (isNaN(balance)) balance = 500;
-
+let balance = parseInt(localStorage.getItem('jak_capital')) || 500;
 let currentBet = 0, deck = [], playerHand = [], jakHand = [];
 
 const jakTalk = {
@@ -12,7 +9,6 @@ const jakTalk = {
     bankruptcy: ["C'est à sec... Mais Jak ne laisse jamais un partenaire au bord de la route."]
 };
 
-// --- EFFETS VISUELS ---
 function launchConfetti() {
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00f3ff', '#ff00ff', '#39ff14'] });
 }
@@ -30,25 +26,20 @@ function jakSpeak(cat) {
     typeWriter(jakTalk[cat][Math.floor(Math.random() * jakTalk[cat].length)]);
 }
 
-// --- INTERFACE ---
+// --- CORRECTION MAJEURE DE L'INTERFACE ---
 function updateUI() {
     const balEl = document.getElementById('balance-display');
     balEl.innerText = "$" + balance.toLocaleString();
     
-    // LOGIQUE DE COULEUR CORRIGÉE :
-    // On met en rouge UNIQUEMENT si un prêt est actif ET que le joueur n'est pas en train de miser
-    if (localStorage.getItem('jak_loan') === 'true' && currentBet === 0 && balance <= 500) {
+    // On force le VERT par défaut
+    balEl.className = 'balance-box status-green';
+
+    // Le ROUGE n'apparaît QUE si le joueur est en banqueroute totale ($0)
+    // ou s'il vient juste d'accepter le prêt et n'a pas encore misé.
+    if (balance === 0 || (localStorage.getItem('jak_loan') === 'true' && balance === 500 && currentBet === 0)) {
         balEl.className = 'balance-box status-red';
-    } else {
-        // Dès que le joueur mise ou qu'il n'a plus de dette, on repasse au VERT BINOKUB
-        balEl.className = 'balance-box status-green';
-        
-        // Si le solde remonte naturellement au-dessus du prêt, on efface la dette
-        if (balance > 500) {
-            localStorage.removeItem('jak_loan');
-        }
     }
-    
+
     document.getElementById('current-bet-display').innerText = "MISE : $" + currentBet.toLocaleString();
     document.getElementById('btn-start-deal').style.display = currentBet > 0 ? 'inline-block' : 'none';
 }
@@ -67,7 +58,6 @@ function createChips() {
     });
 }
 
-// --- LOGIQUE DE JEU ---
 function createDeck() {
     const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
     const symbols = ['♠', '♥', '♦', '♣']; deck = [];
@@ -132,23 +122,13 @@ function endGame(res) {
     const winBox = document.getElementById('win-display');
     const donationZone = document.getElementById('donation-zone');
     const nextRoundZone = document.getElementById('next-round-zone');
-    
     winBox.style.display = 'block';
     
     if (res === 'win') {
-        let pScore = getScore(playerHand);
         let gain = currentBet * 2;
-        let isBJ = (pScore === 21 && playerHand.length === 2);
-        
-        if (isBJ) {
-            gain = currentBet * 2.5;
-            winBox.innerHTML = "BLACKJACK !<br>+$" + gain.toLocaleString();
-        } else {
-            winBox.innerHTML = "GAGNÉ !<br>+$" + gain.toLocaleString();
-        }
-        
-        balance += gain; 
-        winBox.style.color = "var(--neon-green)";
+        if (getScore(playerHand) === 21 && playerHand.length === 2) gain = currentBet * 2.5;
+        winBox.innerHTML = "GAGNÉ !<br>+$" + gain.toLocaleString();
+        balance += gain; winBox.style.color = "var(--neon-green)";
         launchConfetti();
         donationZone.style.display = 'block'; 
     } else if (res === 'draw') {
@@ -161,7 +141,6 @@ function endGame(res) {
     currentBet = 0;
     updateUI();
 
-    // Apparition du bouton CONTINUER
     setTimeout(() => {
         if (balance < 20) {
             document.getElementById('loan-modal').style.display = 'flex';
@@ -171,15 +150,8 @@ function endGame(res) {
     }, 1500);
 }
 
-// --- ACTIONS CLIC ---
 window.onload = () => { updateUI(); createChips(); };
-
-function resetBet() { 
-    balance += currentBet; 
-    currentBet = 0; 
-    updateUI(); 
-    createChips(); 
-}
+function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
 
 function acceptLoan() { 
     balance = 500; 
