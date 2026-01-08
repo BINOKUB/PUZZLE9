@@ -2,12 +2,12 @@ let balance = parseInt(localStorage.getItem('jak_capital')) || 500;
 let currentBet = 0, lossStreak = 0, deck = [], playerHand = [], jakHand = [];
 
 const jakTalk = {
-    start: ["Les jeux sont faits. Voyons ce que le destin nous réserve...", "Une mise audacieuse ! J'aime votre panache.", "Concentration... La science et le jeu demandent de la rigueur.", "C'est parti. Pour la recherche et pour le plaisir !", "Le tapis est à vous. Faites briller votre intuition."],
-    win: ["21 ! Magnifique. Si seulement chaque combat finissait ainsi.", "Vous avez battu la maison ! Votre intuition est remarquable.", "Le destin a choisi son camp : le vôtre. Bravo !", "Une victoire éclatante. La science de la gagne est en vous.", "Le 21 est tombé ! Un moment de grâce à cette table."],
-    lose: ["Jak l'emporte cette fois, mais le combat continue ensemble.", "Un revers mineur. L'important est de rester dans la partie.", "La chance a tourné. Mais chaque tentative nous rapproche de la solution.", "La maison gagne, mais votre soutien reste inestimable."],
-    draw: ["Égalité ! La banque vous rend votre mise. On recommence ?", "Match nul. Jak et vous êtes de force égale sur cette main.", "Un 'Push' ! Récupérez vos jetons, on relance."],
-    hit: ["Une carte de plus... la prise de risque est nécessaire pour avancer.", "On tente le tout pour le tout ? J'admire votre détermination.", "Prudence ou audace ? C'est là que tout se joue."],
-    memory_loss: ["La route est sinueuse, mais chaque main jouée soutient une cause plus grande.", "Gardez espoir, la recherche aussi connaît des revers, mais on ne lâche rien."]
+    start: ["Les jeux sont faits. Voyons ce que le destin nous réserve...", "Une mise audacieuse ! J'aime votre panache.", "C'est parti. Pour la recherche et pour le plaisir !", "Le tapis est à vous. Faites briller votre intuition."],
+    win: ["21 ! Magnifique. Si seulement chaque combat finissait ainsi.", "Vous avez battu la maison ! Votre intuition est remarquable.", "Une victoire éclatante. La science de la gagne est en vous."],
+    lose: ["Jak l'emporte cette fois, mais le combat continue ensemble.", "Un revers mineur. L'important est de rester dans la partie.", "La maison gagne, mais votre soutien reste inestimable."],
+    draw: ["Égalité ! La banque vous rend votre mise. On recommence ?", "Un 'Push' ! Récupérez vos jetons, on relance."],
+    hit: ["Une carte de plus... la prise de risque est nécessaire pour avancer.", "On tente le tout pour le tout ? J'admire votre détermination."],
+    bankruptcy: ["C'est à sec... Mais Jak ne laisse jamais un partenaire au bord de la route.", "Besoin d'un coup de pouce ? La recherche n'attend pas."]
 };
 
 function typeWriter(text, i = 0) {
@@ -16,14 +16,11 @@ function typeWriter(text, i = 0) {
     if (i < text.length) { 
         el.innerHTML += text.charAt(i); 
         setTimeout(() => typeWriter(text, i + 1), 25); 
-    } else { 
-        el.innerHTML += '"'; 
-    }
+    } else { el.innerHTML += '"'; }
 }
 
 function jakSpeak(cat) {
-    let phrases = (lossStreak >= 3 && (cat === 'start' || cat === 'lose')) ? jakTalk.memory_loss : jakTalk[cat];
-    if (!phrases) phrases = jakTalk.draw;
+    let phrases = jakTalk[cat] || jakTalk.draw;
     typeWriter(phrases[Math.floor(Math.random() * phrases.length)]);
 }
 
@@ -50,7 +47,18 @@ function renderHand(hand, id, hide = false) {
 }
 
 function updateUI() {
-    document.getElementById('balance-display').innerText = "$" + balance.toLocaleString();
+    const balEl = document.getElementById('balance-display');
+    balEl.innerText = "$" + balance.toLocaleString();
+    
+    // Si on a un prêt actif (simulé par une classe rouge)
+    if (localStorage.getItem('jak_loan') === 'true') {
+        balEl.classList.add('status-red');
+        balEl.classList.remove('status-green');
+    } else {
+        balEl.classList.add('status-green');
+        balEl.classList.remove('status-red');
+    }
+    
     document.getElementById('current-bet-display').innerText = "MISE : $" + currentBet.toLocaleString();
     document.getElementById('btn-start-deal').style.display = currentBet > 0 ? 'inline-block' : 'none';
 }
@@ -61,24 +69,18 @@ function createChips() {
     values.forEach(v => {
         if (v <= balance) {
             const chip = document.createElement('div'); chip.className = `chip chip-${v}`;
-            chip.style.borderColor = getChipColor(v); chip.style.color = getChipColor(v);
-            chip.innerText = "$" + v; chip.onclick = () => { balance -= v; currentBet += v; updateUI(); createChips(); };
+            chip.style.borderColor = (v === 100) ? "#00f3ff" : (v === 500) ? "#ff00ff" : "#39ff14";
+            chip.style.color = chip.style.borderColor;
+            chip.innerText = "$" + v; 
+            chip.onclick = () => { balance -= v; currentBet += v; updateUI(); createChips(); };
             container.appendChild(chip);
         }
     });
 }
 
-function getChipColor(v) {
-    if (v === 20) return "#fff"; if (v === 100) return "#00f3ff";
-    if (v === 500) return "#ff00ff"; return "#39ff14";
-}
-
-function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
-
 function startDeal() {
     document.getElementById('bet-area').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
-    document.getElementById('win-display').style.display = 'none';
     createDeck();
     playerHand = [deck.pop(), deck.pop()];
     jakHand = [deck.pop(), deck.pop()];
@@ -98,7 +100,6 @@ function playerStay() {
     document.getElementById('game-controls').style.display = 'none';
     renderHand(jakHand, 'jak-cards', false);
     document.getElementById('jak-score-val').style.visibility = 'visible';
-    
     let js = getScore(jakHand);
     document.getElementById('jak-score-val').innerText = "SCORE JAK : " + js;
 
@@ -111,9 +112,7 @@ function playerStay() {
         } else {
             clearInterval(jakDrawInterval);
             let ps = getScore(playerHand);
-            if (js > 21 || ps > js) endGame('win'); 
-            else if (ps === js) endGame('draw'); 
-            else endGame('lose');
+            if (js > 21 || ps > js) endGame('win'); else if (ps === js) endGame('draw'); else endGame('lose');
         }
     }, 800);
 }
@@ -125,11 +124,9 @@ function endGame(res) {
 
     if (res === 'win') { 
         let gain = currentBet * 2;
-        if (getScore(playerHand) === 21 && playerHand.length === 2) gain = currentBet * 2.5;
         balance += gain; 
         winBox.innerText = "GAGNÉ ! + $" + gain.toLocaleString();
         winBox.style.color = "var(--neon-green)";
-        lossStreak = 0; 
     } else if (res === 'draw') { 
         balance += currentBet;
         winBox.innerText = "PUSH : $" + currentBet.toLocaleString() + " RENDUS";
@@ -137,13 +134,36 @@ function endGame(res) {
     } else { 
         winBox.innerText = "PERDU...";
         winBox.style.color = "var(--neon-red)";
-        lossStreak++; 
     }
     
     localStorage.setItem('jak_capital', balance);
     currentBet = 0;
     updateUI();
-    setTimeout(() => { location.reload(); }, 4500);
+
+    setTimeout(() => {
+        if (balance < 20) {
+            showLoanModal();
+        } else {
+            location.reload();
+        }
+    }, 3000);
+}
+
+function showLoanModal() {
+    jakSpeak('bankruptcy');
+    document.getElementById('loan-modal').style.display = 'flex';
+}
+
+function acceptLoan() {
+    balance = 500;
+    localStorage.setItem('jak_capital', balance);
+    localStorage.setItem('jak_loan', 'true'); // Marque le joueur comme ayant une dette
+    location.reload();
+}
+
+function declineLoan() {
+    alert("Sans capital, Jak ne peut plus distribuer. Merci d'avoir soutenu la cause !");
+    window.location.href = "index.html"; // Retour à l'accueil
 }
 
 window.onload = () => { updateUI(); createChips(); };
