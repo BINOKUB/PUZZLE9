@@ -17,8 +17,8 @@
             padding: 15px 25px; background: rgba(255,255,255,0.05); border-radius: 50px;
             border: 1px solid var(--cyan); margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,243,255,0.2);
         }
+        .balance-box { font-size: 1.2rem; font-weight: bold; }
         .status-green { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
-        .status-red { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
         .jak-bubble {
             background: #fff; color: #000; padding: 15px 25px; border-radius: 20px;
             margin-bottom: 30px; font-style: italic; position: relative;
@@ -44,6 +44,8 @@
             animation: slideIn 0.5s ease-out forwards;
         }
         @keyframes slideIn { from { transform: translateX(-200px) rotate(-20deg); opacity: 0; } to { transform: translateX(0) rotate(0deg); opacity: 1; } }
+        
+        /* JETONS */
         .chips-container { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
         .chip {
             width: 65px; height: 65px; border-radius: 50%; border: 4px dashed rgba(255,255,255,0.5);
@@ -51,13 +53,27 @@
             font-weight: bold; cursor: pointer; transition: 0.2s; background: #111;
         }
         .chip:hover { transform: scale(1.1); filter: brightness(1.2); }
+        
         .current-bet { font-size: 1.8rem; color: var(--cyan); margin: 15px 0; font-weight: bold; text-shadow: 0 0 10px var(--cyan); }
+        
         .btn-play {
             background: var(--neon-green); color: black; border: none; padding: 15px 45px;
             border-radius: 30px; font-weight: bold; font-size: 1.3rem; cursor: pointer;
             box-shadow: 0 0 25px var(--neon-green); transition: 0.3s;
         }
-        .partner-logo { width: 140px; margin-top: 40px; opacity: 0.6; }
+
+        /* ZONE DE GAIN GÉANTE */
+        #win-display {
+            display: none; color: var(--neon-green); font-size: 2.5rem; font-weight: bold;
+            text-shadow: 0 0 20px var(--neon-green); margin: 20px 0;
+            animation: pulse 0.6s infinite alternate;
+        }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .partner-logo { width: 140px; margin-top: 40px; opacity: 0.8; }
+        
+        /* BOUTON VIDÉO EXPLICATIVE */
+        .video-hint { margin-top: 20px; color: var(--cyan); text-decoration: none; font-size: 0.8rem; border: 1px solid var(--cyan); padding: 5px 15px; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -93,15 +109,11 @@
                 <button class="btn-play" style="background: var(--magenta); box-shadow: 0 0 15px var(--magenta);" onclick="playerStay()">RESTER</button>
             </div>
         </div>
+
+        <div id="win-display"></div>
     </div>
 
-    <div id="win-display" style="display:none; color: var(--neon-green); font-size: 2.5rem; font-weight: bold; text-shadow: 0 0 20px var(--neon-green); margin-top: 20px; animation: bounce 0.5s infinite alternate;">
-    + $0
-</div>
-
-<style>
-@keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
-</style>
+    <a href="https://www.youtube.com/watch?v=QLekLBP2HWE" target="_blank" class="video-hint">VOIR LE VISUEL EXPLICATIF 🎥</a>
 
     <img src="CANCER-DU-SANG-DU-CANADA.jpg" class="partner-logo">
 
