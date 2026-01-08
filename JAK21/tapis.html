@@ -6,28 +6,19 @@
     <title>JAK-21 | La Table</title>
     <style>
         :root {
-            --cyan: #00f3ff;
-            --magenta: #ff00ff;
-            --neon-green: #39ff14;
-            --neon-red: #ff3131;
-            --bg: #050505;
+            --cyan: #00f3ff; --magenta: #ff00ff; --neon-green: #39ff14; --neon-red: #ff3131; --bg: #050505;
         }
         body {
             background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
             display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px;
         }
-
-        /* BANDEAU PORTEFEUILLE */
         .wallet-bar {
             width: 100%; max-width: 600px; display: flex; justify-content: space-between;
             padding: 15px 25px; background: rgba(255,255,255,0.05); border-radius: 50px;
             border: 1px solid var(--cyan); margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,243,255,0.2);
         }
-        .balance-box { font-size: 1.2rem; font-weight: bold; }
         .status-green { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
         .status-red { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
-
-        /* BULLE DE JAK */
         .jak-bubble {
             background: #fff; color: #000; padding: 15px 25px; border-radius: 20px;
             margin-bottom: 30px; font-style: italic; position: relative;
@@ -39,52 +30,33 @@
             border-left: 10px solid transparent; border-right: 10px solid transparent;
             border-top: 10px solid #fff; transform: translateX(-50%);
         }
-
-        /* ZONE DE JEU (TABLE) */
         .table {
             width: 100%; max-width: 600px; background: rgba(0, 243, 255, 0.02);
             border: 2px solid var(--cyan); border-radius: 100px 100px 30px 30px;
             padding: 40px 20px; text-align: center; position: relative;
             box-shadow: inset 0 0 60px rgba(0, 243, 255, 0.1);
         }
-
-        /* CARTES ET ANIMATIONS */
         .card-zone { display: flex; justify-content: center; gap: 15px; min-height: 120px; margin: 15px 0; }
         .card {
-            width: 75px; height: 105px; background: white; color: black;
-            border-radius: 10px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; font-weight: bold;
-            font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            width: 75px; height: 105px; background: white; color: black; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             animation: slideIn 0.5s ease-out forwards;
         }
-        @keyframes slideIn {
-            from { transform: translateX(-200px) rotate(-20deg); opacity: 0; }
-            to { transform: translateX(0) rotate(0deg); opacity: 1; }
-        }
-
-        /* SYSTÈME DE JETONS */
+        @keyframes slideIn { from { transform: translateX(-200px) rotate(-20deg); opacity: 0; } to { transform: translateX(0) rotate(0deg); opacity: 1; } }
         .chips-container { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
         .chip {
             width: 65px; height: 65px; border-radius: 50%; border: 4px dashed rgba(255,255,255,0.5);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: 0.2s;
-            background: #111; box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+            font-weight: bold; cursor: pointer; transition: 0.2s; background: #111;
         }
-        .chip:hover { transform: scale(1.1) translateY(-5px); filter: brightness(1.2); }
-        .chip-20 { border-color: #fff; color: #fff; }
-        .chip-100 { border-color: var(--cyan); color: var(--cyan); }
-        .chip-500 { border-color: var(--magenta); color: var(--magenta); }
-        .chip-1000 { border-color: var(--neon-green); color: var(--neon-green); }
-
+        .chip:hover { transform: scale(1.1); filter: brightness(1.2); }
         .current-bet { font-size: 1.8rem; color: var(--cyan); margin: 15px 0; font-weight: bold; text-shadow: 0 0 10px var(--cyan); }
-
         .btn-play {
             background: var(--neon-green); color: black; border: none; padding: 15px 45px;
             border-radius: 30px; font-weight: bold; font-size: 1.3rem; cursor: pointer;
             box-shadow: 0 0 25px var(--neon-green); transition: 0.3s;
         }
-        .btn-play:hover { transform: scale(1.05); filter: brightness(1.1); }
-        
         .partner-logo { width: 140px; margin-top: 40px; opacity: 0.6; }
     </style>
 </head>
@@ -103,16 +75,19 @@
             <div class="chips-container" id="chips-box"></div>
             <div class="current-bet" id="current-bet-display">MISE : $0</div>
             <button class="btn-play" id="btn-start-deal" onclick="startDeal()" style="display:none;">VALIDER LA MISE</button>
-            <br>
-            <button onclick="resetBet()" style="background:none; border:none; color:#555; cursor:pointer; text-decoration:underline; margin-top:15px;">Réinitialiser</button>
+            <br><button onclick="resetBet()" style="background:none; border:none; color:#555; cursor:pointer; text-decoration:underline; margin-top:15px;">Réinitialiser</button>
         </div>
 
         <div id="game-area" style="display:none;">
             <div style="font-size: 0.7rem; color: var(--cyan); letter-spacing: 2px; opacity: 0.7;">MAIN DE JAK</div>
             <div id="jak-cards" class="card-zone"></div>
+            <div id="jak-score-val" style="color: var(--cyan); font-weight: bold; visibility: hidden; margin: 10px 0;">SCORE JAK : 0</div>
+            
             <div style="border-top: 1px solid rgba(0,243,255,0.1); margin: 20px 0;"></div>
+            
             <div id="player-cards" class="card-zone"></div>
             <div id="player-score-val" style="color: var(--magenta); font-weight: bold; font-size: 1.2rem;">SCORE : 0</div>
+            
             <div id="game-controls" style="margin-top: 20px; display: flex; gap: 15px; justify-content: center;">
                 <button class="btn-play" style="background: var(--cyan); box-shadow: 0 0 15px var(--cyan);" onclick="playerHit()">CARTE</button>
                 <button class="btn-play" style="background: var(--magenta); box-shadow: 0 0 15px var(--magenta);" onclick="playerStay()">RESTER</button>
@@ -122,172 +97,6 @@
 
     <img src="CANCER-DU-SANG-DU-CANADA.jpg" class="partner-logo">
 
-    <script>
-        let balance = parseInt(localStorage.getItem('jak_capital')) || 500;
-        let currentBet = 0, lossStreak = 0, deck = [], playerHand = [], jakHand = [];
-
-        const jakTalk = {
-            start: ["Les jeux sont faits. Voyons ce que le destin nous réserve...", "Une mise audacieuse ! J'aime votre panache.", "Concentration... La science et le jeu demandent de la rigueur.", "C'est parti. Pour la recherche et pour le plaisir !", "Le tapis est à vous. Faites briller votre intuition.", "Une mise de connaisseur. Voyons la donne.", "Le silence, les cartes, l'espoir... La partie commence.", "Chaque jeton posé est un pas vers l'inconnu.", "La table est chaude aujourd'hui, profitez-en.", "Une stratégie se dessine... je le sens.", "Bienvenue au cœur de l'action. Je distribue.", "Votre confiance m'impressionne. Jouons.", "La chance n'est qu'une probabilité qui attend son heure.", "Un duel d'esprit, c'est ce qu'il nous fallait.", "Rien ne vaut l'adrénaline d'une belle donne.", "Vos jetons sont en place, mon jeu aussi.", "La rigueur du hasard... fascinant, n'est-ce pas ?", "Installez-vous confortablement, le duel commence.", "Une mise solide. Le respect est mutuel à cette table.", "Que les cartes parlent pour nous ce soir."],
-            win: ["21 ! Magnifique. Si seulement chaque combat finissait ainsi.", "Vous avez battu la maison ! Votre intuition est remarquable.", "Le destin a choisi son camp : le vôtre. Bravo !", "Une victoire éclatante. La science de la gagne est en vous.", "C'est ce qu'on appelle un coup de maître.", "Splendide ! Vos gains s'envolent, tout comme nos espoirs.", "La chance vous accompagne... et c'est une excellente nouvelle.", "Vous lisez dans mon jeu comme dans un livre ouvert.", "Une main parfaite. Rien à ajouter, sinon mes félicitations.", "Le 21 est tombé ! Un moment de grâce à cette table.", "Vous dominez le tapis. Jak s'incline avec respect.", "C'est ainsi qu'on gagne les grandes batailles.", "Quelle audace récompensée ! C'est rafraîchissant.", "Votre portefeuille se porte à merveille, tout comme votre moral.", "Un gain mérité. Votre patience a payé.", "Le son de la victoire... savourez ce moment.", "Vous avez le fluide aujourd'hui. Ne changez rien.", "Même Jak ne peut rien face à une telle main.", "C'est une leçon de Blackjack que vous me donnez là.", "Bravo ! Pourquoi ne pas célébrer cela avec un petit geste ?"],
-            lose: ["Jak l'emporte cette fois, mais le combat continue ensemble.", "Un revers mineur. L'important est de rester dans la partie.", "La chance a tourné. Mais chaque tentative nous rapproche de la solution.", "La maison gagne, mais votre soutien reste inestimable.", "Ce n'était pas votre donne, mais la prochaine sera différente.", "Gardez la tête haute, le jeu est une roue qui tourne.", "Un coup du sort... comme il en existe tant en recherche.", "Jak a eu de la chance, mais votre stratégie était la bonne.", "La banque gagne, mais votre esprit reste conquérant.", "Une manche difficile, mais la partie est loin d'être finie.", "Le hasard est parfois cruel, mais il ne définit pas votre valeur.", "Rien n'est perdu tant que l'espoir est à la table.", "Une défaite qui prépare une plus grande victoire.", "Jak garde la main, pour le moment du moins.", "La science avance par échecs et réussites. Comme nous ici.", "Un petit pas en arrière pour mieux sauter ensuite.", "La persévérance est la clé, au casino comme dans la vie.", "Ne laissez pas Jak vous impressionner, reprenez la main.", "Le destin teste votre détermination. Prêt à relancer ?", "La manche se termine, mais l'engagement demeure."],
-            hit: ["Une carte de plus... la prise de risque est nécessaire pour avancer.", "On tente le tout pour le tout ? J'admire votre détermination.", "Prudence ou audace ? C'est là que tout se joue.", "Le frisson de la carte supplémentaire... classique.", "Une décision réfléchie. Voyons ce que le sabot nous donne.", "Vous cherchez le 21 ? Une quête noble.", "La tension monte d'un cran. Voici votre carte.", "On ne gagne rien sans oser. Belle initiative.", "Un choix qui pourrait tout changer. Suspendons notre souffle.", "La prochaine carte sera peut-être celle de la victoire.", "Vous ne vous contentez pas du minimum, j'aime ça.", "Chaque carte tirée est une nouvelle chance de briller.", "La stratégie s'affine. Une décision de pro.", "On demande ? On reçoit. Voici pour vous.", "L'adrénaline à l'état pur. C'est ça, le Blackjack.", "Vous avez l'oeil du tigre. Voyons le résultat.", "Une carte de plus pour l'histoire. À vous de jouer.", "Le risque est calculé, la tension est palpable.", "Vous jouez avec le feu... ou avec le génie ?", "La carte arrive. Le destin est en marche."],
-            memory_loss: ["La route est sinueuse, mais chaque main jouée soutient une cause plus grande.", "Gardez espoir, la recherche aussi connaît des revers, mais on ne lâche rien.", "Ne vous découragez pas, votre présence ici est déjà une victoire.", "Même dans la tempête, votre soutien brille comme un phare.", "La persévérance finit toujours par payer, j'en suis convaincu."]
-        };
-
-        function typeWriter(text, i = 0) {
-            const el = document.getElementById('jak-msg');
-            if (i === 0) el.innerHTML = '"';
-            if (i < text.length) { el.innerHTML += text.charAt(i); setTimeout(() => typeWriter(text, i + 1), 25); }
-            else { el.innerHTML += '"'; }
-        }
-
-        function jakSpeak(cat) {
-            let phrases = (lossStreak >= 3 && (cat === 'start' || cat === 'lose')) ? jakTalk.memory_loss : jakTalk[cat];
-            typeWriter(phrases[Math.floor(Math.random() * phrases.length)]);
-        }
-
-        function createDeck() {
-            const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-            const symbols = ['♠', '♥', '♦', '♣'];
-            deck = [];
-            for (let s of symbols) for (let v of values) {
-                let p = parseInt(v) || 10; if (v === 'A') p = 11;
-                deck.push({ n: v, s: s, p: p });
-            }
-            deck.sort(() => Math.random() - 0.5);
-        }
-
-        function getScore(hand) {
-            let s = hand.reduce((acc, c) => acc + c.p, 0), aces = hand.filter(c => c.n === 'A').length;
-            while (s > 21 && aces > 0) { s -= 10; aces--; } return s;
-        }
-
-        function renderHand(hand, id, hide = false) {
-            document.getElementById(id).innerHTML = hand.map((c, i) => 
-                `<div class="card" style="color:${(c.s === '♥' || c.s === '♦') ? 'red' : 'black'}">${(hide && i === 0) ? '?' : c.n + '<br>' + c.s}</div>`
-            ).join('');
-        }
-
-        function updateUI() {
-            document.getElementById('balance-display').innerText = "$" + balance.toLocaleString();
-            document.getElementById('current-bet-display').innerText = "MISE : $" + currentBet.toLocaleString();
-            document.getElementById('btn-start-deal').style.display = currentBet > 0 ? 'inline-block' : 'none';
-        }
-
-        function createChips() {
-            const values = [20, 50, 100, 500, 1000, 5000];
-            const container = document.getElementById('chips-box'); container.innerHTML = '';
-            values.forEach(v => {
-                if (v <= balance) {
-                    const chip = document.createElement('div'); chip.className = `chip chip-${v}`;
-                    chip.innerText = "$" + v; chip.onclick = () => { balance -= v; currentBet += v; updateUI(); createChips(); };
-                    container.appendChild(chip);
-                }
-            });
-        }
-
-        function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
-
-        function startDeal() {
-    // 1. Transition visuelle : On cache les jetons et on montre la table
-    document.getElementById('bet-area').style.display = 'none';
-    document.getElementById('game-area').style.display = 'block';
-    
-    // 2. Initialisation du jeu
-    createDeck();
-    playerHand = [deck.pop(), deck.pop()];
-    jakHand = [deck.pop(), deck.pop()];
-    
-    // 3. Jak prend la parole
-    jakSpeak('start');
-    
-    // 4. Distribution visuelle des cartes
-    renderHand(playerHand, 'player-cards');
-    renderHand(jakHand, 'jak-cards', true); // La première carte de Jak est cachée
-    
-    // 5. Mise à jour du score joueur
-    document.getElementById('player-score-val').innerText = "SCORE : " + getScore(playerHand);
-    
-    // 6. Vérification immédiate du Blackjack
-    if (getScore(playerHand) === 21) {
-        setTimeout(() => { playerStay(); }, 1000);
-    }
-}
-
-function playerHit() {
-    playerHand.push(deck.pop());
-    renderHand(playerHand, 'player-cards');
-    
-    let currentScore = getScore(playerHand);
-    document.getElementById('player-score-val').innerText = "SCORE : " + currentScore;
-    
-    if (currentScore > 21) {
-        endGame('lose');
-    } else {
-        jakSpeak('hit');
-    }
-}
-
-function playerStay() {
-    // On cache les contrôles pendant que Jak joue
-    document.getElementById('game-controls').style.display = 'none';
-    
-    // Jak révèle sa carte
-    renderHand(jakHand, 'jak-cards', false);
-    let js = getScore(jakHand);
-    
-    // IA de Jak : il tire jusqu'à 17
-    const jakDrawInterval = setInterval(() => {
-        if (js < 17) {
-            jakHand.push(deck.pop());
-            renderHand(jakHand, 'jak-cards', false);
-            js = getScore(jakHand);
-        } else {
-            clearInterval(jakDrawInterval);
-            determineWinner();
-        }
-    }, 800);
-}
-
-function determineWinner() {
-    let ps = getScore(playerHand);
-    let js = getScore(jakHand);
-    
-    if (js > 21 || ps > js) {
-        endGame('win');
-    } else if (ps === js) {
-        endGame('draw');
-    } else {
-        endGame('lose');
-    }
-}
-
-function endGame(res) {
-    document.getElementById('game-controls').style.display = 'none';
-    jakSpeak(res);
-    
-    // Gestion des gains fictifs
-    if (res === 'win') {
-        balance += currentBet * 2;
-        lossStreak = 0;
-        // Ici, nous pourrons ajouter l'appel aux confettis !
-    } else if (res === 'lose') {
-        lossStreak++;
-    } else {
-        balance += currentBet; // Remboursement en cas d'égalité
-    }
-    
-    // Sauvegarde du nouveau solde
-    localStorage.setItem('jak_capital', balance);
-    currentBet = 0;
-
-    // Relance une partie après 4 secondes pour laisser lire le message de Jak
-    setTimeout(() => {
-        location.reload(); 
-    }, 4500);
-}
-
-        window.onload = () => { updateUI(); createChips(); };
-    </script>
+    <script src="game.js"></script>
 </body>
 </html>
