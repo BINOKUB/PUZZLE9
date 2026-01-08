@@ -111,13 +111,42 @@ function playerStay() {
 
 function endGame(res) {
     jakSpeak(res);
-    if (res === 'win') { balance += currentBet * 2; lossStreak = 0; } 
-    else if (res === 'lose') { lossStreak++; } 
-    else { balance += currentBet; }
+    const winDisplay = document.getElementById('win-display');
+    
+    if (res === 'win') { 
+        let gain = currentBet * 2; 
+        
+        // Bonus Blackjack (As + Figure) : rapporte 2.5x la mise
+        if (getScore(playerHand) === 21 && playerHand.length === 2) {
+            gain = currentBet * 2.5;
+            winDisplay.innerText = "BLACKJACK ! + $" + gain.toLocaleString();
+        } else {
+            winDisplay.innerText = "GAGNÉ ! + $" + gain.toLocaleString();
+        }
+        
+        balance += gain; 
+        lossStreak = 0;
+        
+        // Affichage gratifiant du gain
+        winDisplay.style.display = 'block';
+        
+    } else if (res === 'draw') { 
+        balance += currentBet; 
+        winDisplay.innerText = "PUSH : $" + currentBet.toLocaleString() + " RENDUS";
+        winDisplay.style.color = "var(--cyan)";
+        winDisplay.style.display = 'block';
+    } else if (res === 'lose') { 
+        lossStreak++; 
+    }
     
     localStorage.setItem('jak_capital', balance);
     currentBet = 0;
-    setTimeout(() => { location.reload(); }, 4500);
-}
+    
+    // On met à jour le portefeuille immédiatement pour que le joueur voie le chiffre monter
+    document.getElementById('balance-display').innerText = "$" + balance.toLocaleString();
 
+    setTimeout(() => { 
+        location.reload(); 
+    }, 4500);
+}
 window.onload = () => { updateUI(); createChips(); };
