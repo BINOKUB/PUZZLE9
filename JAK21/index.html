@@ -13,52 +13,69 @@
         }
         body {
             background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; margin: 0; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; padding: 20px;
         }
         .setup-container {
             text-align: center; background: rgba(255,255,255,0.02);
-            padding: 50px; border-radius: 40px; border: 1px solid rgba(0, 243, 255, 0.2);
-            box-shadow: 0 0 50px rgba(0,0,0,1); max-width: 400px; width: 90%;
+            padding: 40px; border-radius: 40px; border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 50px rgba(0,0,0,1); max-width: 450px; width: 100%;
         }
-        h1 { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); margin-bottom: 30px; }
-        p { color: #aaa; margin-bottom: 40px; font-style: italic; }
+        h1 { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); margin-bottom: 10px; font-size: 2.5rem; }
+        .subtitle { color: #fff; margin-bottom: 30px; font-size: 1.2rem; }
 
         /* BOUTONS NÉON VERT */
         .capital-btn {
-            display: block; width: 100%; padding: 15px; margin: 15px 0;
+            display: block; width: 100%; padding: 18px; margin: 15px 0;
             background: transparent; border: 2px solid var(--neon-green);
-            color: var(--neon-green); border-radius: 15px; font-size: 1.5rem;
+            color: var(--neon-green); border-radius: 15px; font-size: 1.6rem;
             font-weight: bold; cursor: pointer; transition: 0.3s;
             text-shadow: 0 0 10px var(--neon-green);
-            box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.1);
         }
         .capital-btn:hover {
             background: var(--neon-green); color: black;
             box-shadow: 0 0 30px var(--neon-green);
         }
+
+        /* SECTION PARTENAIRE */
+        .partner-footer {
+            margin-top: 50px; text-align: center; max-width: 400px;
+            opacity: 0.8; animation: fadeIn 2s ease;
+        }
+        .partner-logo {
+            width: 180px; height: auto; margin-bottom: 15px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+        }
+        .partner-text { font-size: 0.85rem; color: #ccc; line-height: 1.4; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 0.8; } }
     </style>
 </head>
 <body>
 
     <div class="setup-container">
         <h1>JAK-21</h1>
-        <p>Choisissez votre capital de départ pour soutenir la cause :</p>
+        <p class="subtitle">Choisissez votre capital de départ</p>
         
         <button class="capital-btn" onclick="selectCapital(500)">$500</button>
         <button class="capital-btn" onclick="selectCapital(10000)">$10,000</button>
         <button class="capital-btn" onclick="selectCapital(100000)">$100,000</button>
     </div>
 
+    <div class="partner-footer">
+        <img src="CANCER-DU-SANG-DU-CANADA.jpg" alt="Logo Société de Leucémie & Lymphome" class="partner-logo">
+        <p class="partner-text">
+            <strong>BINOKUB</strong> est fier de s'associer avec la <br>
+            "Société de Leucémie & Lymphome Du Canada"
+        </p>
+    </div>
+
     <script>
         function selectCapital(amount) {
-            // On stocke le choix dans la mémoire du navigateur
             localStorage.setItem('jak_capital', amount);
-            localStorage.setItem('jak_status', 'original'); // Vert = Original
-            
-            // On passe à l'étape suivante (le tapis de jeu)
-            // Pour l'instant on affiche juste une confirmation
-            alert("Capital de " + amount + "$ validé ! Jak prépare la table...");
+            localStorage.setItem('jak_status', 'original'); 
+            // Lancer l'étape suivante (Mise en place de la table)
+            window.location.href = 'game.html'; // Exemple de redirection vers le tapis
         }
     </script>
 </body>
