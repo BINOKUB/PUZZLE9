@@ -35,13 +35,18 @@ function updateUI() {
     const balEl = document.getElementById('balance-display');
     balEl.innerText = "$" + balance.toLocaleString();
     
-    // GESTION COULEUR : Rouge seulement si prêt actif, sinon Vert
-    if (localStorage.getItem('jak_loan') === 'true' && balance <= 500) {
+    // LOGIQUE DE COULEUR CORRIGÉE :
+    // On met en rouge UNIQUEMENT si un prêt est actif ET que le joueur n'est pas en train de miser
+    if (localStorage.getItem('jak_loan') === 'true' && currentBet === 0 && balance <= 500) {
         balEl.className = 'balance-box status-red';
     } else {
+        // Dès que le joueur mise ou qu'il n'a plus de dette, on repasse au VERT BINOKUB
         balEl.className = 'balance-box status-green';
-        // Si le solde dépasse 500, on considère le prêt remboursé
-        if (balance > 500) localStorage.removeItem('jak_loan');
+        
+        // Si le solde remonte naturellement au-dessus du prêt, on efface la dette
+        if (balance > 500) {
+            localStorage.removeItem('jak_loan');
+        }
     }
     
     document.getElementById('current-bet-display').innerText = "MISE : $" + currentBet.toLocaleString();
