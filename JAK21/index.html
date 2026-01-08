@@ -1,112 +1,195 @@
-<style>
-    /* Ajout du style pour les règles */
-    .rules-box {
-        max-width: 500px; background: rgba(255,255,255,0.05);
-        border-radius: 15px; padding: 15px; margin-top: 20px;
-        font-size: 0.8rem; border-left: 4px solid var(--cyan);
-    }
-    .rules-box h4 { margin-top: 0; color: var(--cyan); text-transform: uppercase; }
-</style>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAK-21 - Le Duel Solidaire</title>
+    <style>
+        :root {
+            --cyan: #00f3ff;
+            --magenta: #ff00ff;
+            --bg: #0a0a0a;
+        }
+        body {
+            background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px;
+            min-height: 100vh;
+        }
+        /* La Table de Jeu */
+        .table {
+            width: 100%; max-width: 500px; background: rgba(0, 243, 255, 0.03);
+            border: 2px solid var(--cyan); border-radius: 40px;
+            padding: 30px 15px; text-align: center; margin-top: 20px;
+            box-shadow: inset 0 0 50px rgba(0, 243, 255, 0.1);
+        }
+        .card-zone { display: flex; justify-content: center; gap: 10px; min-height: 110px; margin: 15px 0; }
+        .card {
+            background: white; color: black; width: 65px; height: 95px;
+            border-radius: 8px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; font-weight: bold;
+            font-size: 1.4rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            animation: deal 0.4s ease-out;
+        }
+        @keyframes deal { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* Bulle de Jak */
+        .jak-bubble {
+            background: #fff; color: #000; padding: 15px 20px;
+            border-radius: 15px; margin-bottom: 25px; font-style: italic;
+            font-size: 0.95rem; max-width: 85%; position: relative;
+            box-shadow: 0 0 20px var(--cyan); line-height: 1.4;
+        }
+        .jak-bubble::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            border-left: 10px solid transparent; border-right: 10px solid transparent;
+            border-top: 10px solid #fff; transform: translateX(-50%);
+        }
+        /* Contrôles */
+        .controls { display: flex; gap: 15px; margin-top: 25px; }
+        .btn {
+            padding: 12px 25px; border-radius: 25px; border: none; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; transition: 0.2s; min-width: 100px;
+        }
+        .btn-hit { background: var(--cyan); color: #000; box-shadow: 0 0 10px var(--cyan); }
+        .btn-stay { background: var(--magenta); color: #fff; box-shadow: 0 0 10px var(--magenta); }
+        .btn-reset { background: #333; color: white; margin-top: 15px; border: 1px solid var(--cyan); }
+        
+        .rules-box {
+            max-width: 500px; background: rgba(255,255,255,0.05);
+            border-radius: 15px; padding: 15px; margin-top: 30px;
+            font-size: 0.85rem; border-left: 4px solid var(--cyan);
+        }
+        #score-display { color: var(--magenta); font-weight: bold; font-size: 1.1rem; margin-top: 10px; }
+    </style>
+</head>
+<body>
 
-<div class="rules-box">
-    <h4>Comment Jouer ?</h4>
-    <p>Faites 21 ou battez le score de Jak sans dépasser 21. Les Figures valent 10, l'As vaut 1 ou 11.</p>
-</div>
+    <h1 style="color: var(--cyan); text-shadow: 0 0 10px var(--cyan); margin: 0 0 20px 0;">JAK-21</h1>
 
-<script>
-    let deck = [], playerHand = [], jakHand = [], gameOver = false;
+    <div class="jak-bubble" id="jak-msg">
+        "Bienvenue à ma table. Prêt pour un duel d'esprit ?"
+    </div>
 
-    // BANQUE DE RÉPLIQUES DE JAK
-    const jakTalk = {
-        start: ["Bienvenue. Prêt pour un duel d'esprit ?", "Chaque carte est un symbole d'espoir. On commence ?"],
-        win: ["21 ! Magnifique. Si seulement chaque combat se terminait ainsi.", "Vous avez battu la maison ! Votre intuition est remarquable."],
-        lose: ["Jak l'emporte... cette fois. Mais le combat continue ensemble.", "La chance a tourné. Mais chaque tentative nous rapproche de la solution."],
-        draw: ["Un match nul. Comme deux forces qui se mesurent avant la percée."],
-        hit: ["Un choix audacieux. Voyons ce que le destin nous réserve.", "Prudence ou audace ? Le jeu est lancé."]
-    };
+    <div class="table">
+        <div style="font-size: 0.7rem; color: var(--cyan); letter-spacing: 2px; opacity: 0.7;">MAIN DE JAK</div>
+        <div id="jak-cards" class="card-zone"></div>
 
-    function speak(type) {
-        const phrases = jakTalk[type];
-        document.getElementById('jak-msg').innerText = phrases[Math.floor(Math.random() * phrases.length)];
-    }
+        <div style="border-top: 1px solid rgba(0,243,255,0.1); margin: 20px 0;"></div>
 
-    function createDeck() {
-        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-        const symbols = ['♠️', '♥️', '♦️', '♣️'];
-        deck = [];
-        for (let s of symbols) {
-            for (let v of values) {
-                let val = parseInt(v);
-                if (['J', 'Q', 'K'].includes(v)) val = 10;
-                if (v === 'A') val = 11;
-                deck.push({ n: v, s: s, v: val });
+        <div id="player-cards" class="card-zone"></div>
+        <div id="score-display">VOTRE SCORE : 0</div>
+    </div>
+
+    <div class="controls" id="controls">
+        <button class="btn btn-hit" onclick="hit()">CARTE</button>
+        <button class="btn btn-stay" onclick="stay()">RESTER</button>
+    </div>
+
+    <div id="final-controls" style="display:none; text-align: center;">
+        <button class="btn btn-reset" onclick="initGame()">NOUVELLE DONNE</button>
+    </div>
+
+    <div class="rules-box">
+        <h4 style="margin: 0 0 10px 0; color: var(--cyan);">COMMENT JOUER ?</h4>
+        <p style="margin: 0;">Faites 21 ou battez le score de Jak sans dépasser 21. Les Figures valent 10, l'As vaut 1 ou 11.</p>
+    </div>
+
+    <a href="../index.html" style="margin-top: 30px; color: #666; text-decoration: none; font-size: 0.8rem;">← RETOUR AU PORTAIL</a>
+
+    <script>
+        let deck = [], playerHand = [], jakHand = [], gameOver = false;
+
+        const jakTalk = {
+            start: ["Prêt à défier la chance ?", "Voyons si vous pouvez battre la maison."],
+            win: ["21 ! Magnifique. Si seulement chaque combat finissait ainsi.", "Vous avez gagné ! Votre intuition est remarquable."],
+            lose: ["Jak l'emporte. Mais le combat continue ensemble.", "La chance a tourné. Rejouons ?"],
+            draw: ["Un match nul. Comme deux forces qui se mesurent."],
+            hit: ["Un choix audacieux. Voyons la suite...", "Prudence ou audace ?"]
+        };
+
+        function speak(type) {
+            const phrases = jakTalk[type];
+            document.getElementById('jak-msg').innerText = `"${phrases[Math.floor(Math.random() * phrases.length)]}"`;
+        }
+
+        function createDeck() {
+            const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const symbols = ['♠️', '♥️', '♦️', '♣️'];
+            deck = [];
+            for (let s of symbols) {
+                for (let v of values) {
+                    let val = parseInt(v);
+                    if (['J', 'Q', 'K'].includes(v)) val = 10;
+                    if (v === 'A') val = 11;
+                    deck.push({ n: v, s: s, v: val });
+                }
             }
         }
-    }
 
-    function getScore(hand) {
-        let score = hand.reduce((acc, card) => acc + card.v, 0);
-        let aces = hand.filter(c => c.n === 'A').length;
-        while (score > 21 && aces > 0) { score -= 10; aces--; }
-        return score;
-    }
+        function getScore(hand) {
+            let score = hand.reduce((acc, card) => acc + card.v, 0);
+            let aces = hand.filter(c => c.n === 'A').length;
+            while (score > 21 && aces > 0) { score -= 10; aces--; }
+            return score;
+        }
 
-    function renderHand(hand, elementId, hideFirst = false) {
-        const el = document.getElementById(elementId);
-        el.innerHTML = hand.map((c, i) => 
-            `<div class="card" style="color:${(c.s==='♥️'||c.s==='♦️')?'red':'black'}">
-                ${(hideFirst && i === 0) ? '?' : c.n + '<br>' + c.s}
-             </div>`
-        ).join('');
-    }
+        function renderHand(hand, elementId, hideFirst = false) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = hand.map((c, i) => 
+                `<div class="card" style="color:${(c.s==='♥️'||c.s==='♦️')?'red':'black'}">
+                    ${(hideFirst && i === 0) ? '?' : c.n + '<br>' + c.s}
+                 </div>`
+            ).join('');
+        }
 
-    function initGame() {
-        gameOver = false;
-        createDeck();
-        deck.sort(() => Math.random() - 0.5);
-        playerHand = [deck.pop(), deck.pop()];
-        jakHand = [deck.pop(), deck.pop()];
-        speak('start');
-        updateUI();
-        document.getElementById('controls').style.display = 'flex';
-        document.getElementById('final-controls').style.display = 'none';
-    }
+        function initGame() {
+            gameOver = false;
+            createDeck();
+            deck.sort(() => Math.random() - 0.5);
+            playerHand = [deck.pop(), deck.pop()];
+            jakHand = [deck.pop(), deck.pop()];
+            speak('start');
+            updateUI();
+            document.getElementById('controls').style.display = 'flex';
+            document.getElementById('final-controls').style.display = 'none';
+        }
 
-    function updateUI() {
-        renderHand(playerHand, 'player-cards');
-        renderHand(jakHand, 'jak-cards', true);
-        document.getElementById('score-display').innerText = "VOTRE SCORE : " + getScore(playerHand);
-    }
+        function updateUI() {
+            renderHand(playerHand, 'player-cards');
+            renderHand(jakHand, 'jak-cards', true);
+            document.getElementById('score-display').innerText = "VOTRE SCORE : " + getScore(playerHand);
+        }
 
-    function hit() {
-        if (gameOver) return;
-        playerHand.push(deck.pop());
-        speak('hit');
-        updateUI();
-        if (getScore(playerHand) > 21) endGame("Jak l'emporte !");
-    }
+        function hit() {
+            if (gameOver) return;
+            playerHand.push(deck.pop());
+            speak('hit');
+            updateUI();
+            if (getScore(playerHand) > 21) endGame();
+        }
 
-    function stay() {
-        gameOver = true;
-        // Tour de Jak (il s'arrête à 17)
-        while (getScore(jakHand) < 17) { jakHand.push(deck.pop()); }
-        endGame();
-    }
+        function stay() {
+            gameOver = true;
+            while (getScore(jakHand) < 17) { jakHand.push(deck.pop()); }
+            endGame();
+        }
 
-    function endGame(msg = "") {
-        gameOver = true;
-        renderHand(jakHand, 'jak-cards', false);
-        const pScore = getScore(playerHand);
-        const jScore = getScore(jakHand);
+        function endGame() {
+            gameOver = true;
+            renderHand(jakHand, 'jak-cards', false);
+            const pScore = getScore(playerHand);
+            const jScore = getScore(jakHand);
 
-        if (pScore > 21) { speak('lose'); }
-        else if (jScore > 21 || pScore > jScore) { speak('win'); }
-        else if (pScore === jScore) { speak('draw'); }
-        else { speak('lose'); }
+            if (pScore > 21) speak('lose');
+            else if (jScore > 21 || pScore > jScore) speak('win');
+            else if (pScore === jScore) speak('draw');
+            else speak('lose');
 
-        document.getElementById('controls').style.display = 'none';
-        document.getElementById('final-controls').style.display = 'block';
-    }
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('final-controls').style.display = 'block';
+        }
 
-    window.onload = initGame;
-</script>
+        window.onload = initGame;
+    </script>
+</body>
+</html>
