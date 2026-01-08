@@ -31,7 +31,7 @@
         .jak-bubble {
             background: #fff; color: #000; padding: 15px 25px; border-radius: 20px;
             margin-bottom: 30px; font-style: italic; position: relative;
-            box-shadow: 0 0 20px var(--cyan); max-width: 80%; min-height: 50px;
+            box-shadow: 0 0 20px var(--cyan); max-width: 80%; min-height: 60px;
             display: flex; align-items: center; justify-content: center; text-align: center;
         }
         .jak-bubble::after {
@@ -48,10 +48,22 @@
             box-shadow: inset 0 0 60px rgba(0, 243, 255, 0.1);
         }
 
-        /* SYSTÈME DE JETONS (CHIPS) */
-        .chips-container {
-            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px 0;
+        /* CARTES ET ANIMATIONS */
+        .card-zone { display: flex; justify-content: center; gap: 15px; min-height: 120px; margin: 15px 0; }
+        .card {
+            width: 75px; height: 105px; background: white; color: black;
+            border-radius: 10px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; font-weight: bold;
+            font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            animation: slideIn 0.5s ease-out forwards;
         }
+        @keyframes slideIn {
+            from { transform: translateX(-200px) rotate(-20deg); opacity: 0; }
+            to { transform: translateX(0) rotate(0deg); opacity: 1; }
+        }
+
+        /* SYSTÈME DE JETONS */
+        .chips-container { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
         .chip {
             width: 65px; height: 65px; border-radius: 50%; border: 4px dashed rgba(255,255,255,0.5);
             display: flex; align-items: center; justify-content: center;
@@ -60,23 +72,20 @@
         }
         .chip:hover { transform: scale(1.1) translateY(-5px); filter: brightness(1.2); }
         .chip-20 { border-color: #fff; color: #fff; }
-        .chip-50 { border-color: #ffcc00; color: #ffcc00; }
         .chip-100 { border-color: var(--cyan); color: var(--cyan); }
         .chip-500 { border-color: var(--magenta); color: var(--magenta); }
         .chip-1000 { border-color: var(--neon-green); color: var(--neon-green); }
-        .chip-5000 { border-color: #ff9900; color: #ff9900; }
 
         .current-bet { font-size: 1.8rem; color: var(--cyan); margin: 15px 0; font-weight: bold; text-shadow: 0 0 10px var(--cyan); }
 
         .btn-play {
             background: var(--neon-green); color: black; border: none; padding: 15px 45px;
             border-radius: 30px; font-weight: bold; font-size: 1.3rem; cursor: pointer;
-            box-shadow: 0 0 25px var(--neon-green); transition: 0.3s; margin-top: 10px;
+            box-shadow: 0 0 25px var(--neon-green); transition: 0.3s;
         }
         .btn-play:hover { transform: scale(1.05); filter: brightness(1.1); }
-
-        .partner-logo { width: 140px; margin-top: 40px; opacity: 0.6; transition: 0.3s; }
-        .partner-logo:hover { opacity: 1; }
+        
+        .partner-logo { width: 140px; margin-top: 40px; opacity: 0.6; }
     </style>
 </head>
 <body>
@@ -86,179 +95,134 @@
         <span id="balance-display" class="balance-box status-green">$0</span>
     </div>
 
-    <div class="jak-bubble" id="jak-msg">
-        "Prêt à défier la maison ? Constituez votre mise."
-    </div>
+    <div class="jak-bubble" id="jak-msg">"Prêt à défier la maison ? Constituez votre mise."</div>
 
     <div class="table">
         <div id="bet-area">
-            <p style="color: #aaa; font-size: 0.9rem; letter-spacing: 1px;">SÉLECTIONNEZ VOS JETONS</p>
+            <p style="color: #aaa; font-size: 0.9rem;">SÉLECTIONNEZ VOS JETONS</p>
             <div class="chips-container" id="chips-box"></div>
             <div class="current-bet" id="current-bet-display">MISE : $0</div>
-            
-            <div style="margin-top: 20px;">
-                <button class="btn-play" id="btn-start-deal" onclick="startDeal()" style="display:none;">VALIDER LA MISE</button>
-            </div>
-            <button onclick="resetBet()" style="background:none; border:none; color:#555; cursor:pointer; text-decoration:underline; margin-top:20px; font-size:0.8rem;">Réinitialiser la mise</button>
+            <button class="btn-play" id="btn-start-deal" onclick="startDeal()" style="display:none;">VALIDER LA MISE</button>
+            <br>
+            <button onclick="resetBet()" style="background:none; border:none; color:#555; cursor:pointer; text-decoration:underline; margin-top:15px;">Réinitialiser</button>
         </div>
 
         <div id="game-area" style="display:none;">
+            <div style="font-size: 0.7rem; color: var(--cyan); letter-spacing: 2px; opacity: 0.7;">MAIN DE JAK</div>
+            <div id="jak-cards" class="card-zone"></div>
+            <div style="border-top: 1px solid rgba(0,243,255,0.1); margin: 20px 0;"></div>
+            <div id="player-cards" class="card-zone"></div>
+            <div id="player-score-val" style="color: var(--magenta); font-weight: bold; font-size: 1.2rem;">SCORE : 0</div>
+            <div id="game-controls" style="margin-top: 20px; display: flex; gap: 15px; justify-content: center;">
+                <button class="btn-play" style="background: var(--cyan); box-shadow: 0 0 15px var(--cyan);" onclick="playerHit()">CARTE</button>
+                <button class="btn-play" style="background: var(--magenta); box-shadow: 0 0 15px var(--magenta);" onclick="playerStay()">RESTER</button>
             </div>
+        </div>
     </div>
 
-    <img src="CANCER-DU-SANG-DU-CANADA.jpg" class="partner-logo" alt="Partenaire Officiel">
+    <img src="CANCER-DU-SANG-DU-CANADA.jpg" class="partner-logo">
 
     <script>
-        // --- DONNÉES ET ÉTAT ---
         let balance = parseInt(localStorage.getItem('jak_capital')) || 500;
-        let currentBet = 0;
-        let lossStreak = 0;
+        let currentBet = 0, lossStreak = 0, deck = [], playerHand = [], jakHand = [];
 
         const jakTalk = {
-            start: [
-                "Les jeux sont faits. Voyons ce que le destin nous réserve...", "Une mise audacieuse ! J'aime votre panache.",
-                "Concentration... La science et le jeu demandent de la rigueur.", "C'est parti. Pour la recherche et pour le plaisir !",
-                "Le tapis est à vous. Faites briller votre intuition.", "Une mise de connaisseur. Voyons la donne.",
-                "Le silence, les cartes, l'espoir... La partie commence.", "Chaque jeton posé est un pas vers l'inconnu.",
-                "La table est chaude aujourd'hui, profitez-en.", "Une stratégie se dessine... je le sens.",
-                "Bienvenue au cœur de l'action. Je distribue.", "Votre confiance m'impressionne. Jouons.",
-                "La chance n'est qu'une probabilité qui attend son heure.", "Un duel d'esprit, c'est ce qu'il nous fallait.",
-                "Rien ne vaut l'adrénaline d'une belle donne.", "Vos jetons sont en place, mon jeu aussi.",
-                "La rigueur du hasard... fascinant, n'est-ce pas ?", "Installez-vous confortablement, le duel commence.",
-                "Une mise solide. Le respect est mutuel à cette table.", "Que les cartes parlent pour nous ce soir."
-            ],
-            hit: [
-                "Une carte de plus... la prise de risque est nécessaire pour avancer.", "On tente le tout pour le tout ? J'admire votre détermination.",
-                "Prudence ou audace ? C'est là que tout se joue.", "Le frisson de la carte supplémentaire... classique.",
-                "Une décision réfléchie. Voyons ce que le sabot nous donne.", "Vous cherchez le 21 ? Une quête noble.",
-                "La tension monte d'un cran. Voici votre carte.", "On ne gagne rien sans oser. Belle initiative.",
-                "Un choix qui pourrait tout changer. Suspendons notre souffle.", "La prochaine carte sera peut-être celle de la victoire.",
-                "Vous ne vous contentez pas du minimum, j'aime ça.", "Chaque carte tirée est une nouvelle chance de briller.",
-                "La stratégie s'affine. Une décision de pro.", "On demande ? On reçoit. Voici pour vous.",
-                "L'adrénaline à l'état pur. C'est ça, le Blackjack.", "Vous avez l'oeil du tigre. Voyons le résultat.",
-                "Une carte de plus pour l'histoire. À vous de jouer.", "Le risque est calculé, la tension est palpable.",
-                "Vous jouez avec le feu... ou avec le génie ?", "La carte arrive. Le destin est en marche."
-            ],
-            win: [
-                "21 ! Magnifique. Si seulement chaque combat finissait ainsi.", "Vous avez battu la maison ! Votre intuition est remarquable.",
-                "Le destin a choisi son camp : le vôtre. Bravo !", "Une victoire éclatante. La science de la gagne est en vous.",
-                "C'est ce qu'on appelle un coup de maître.", "Splendide ! Vos gains s'envolent, tout comme nos espoirs.",
-                "La chance vous accompagne... et c'est une excellente nouvelle.", "Vous lisez dans mon jeu comme dans un livre ouvert.",
-                "Une main parfaite. Rien à ajouter, sinon mes félicitations.", "Le 21 est tombé ! Un moment de grâce à cette table.",
-                "Vous dominez le tapis. Jak s'incline avec respect.", "C'est ainsi qu'on gagne les grandes batailles.",
-                "Quelle audace récompensée ! C'est rafraîchissant.", "Votre portefeuille se porte à merveille, tout comme votre moral.",
-                "Un gain mérité. Votre patience a payé.", "Le son de la victoire... savourez ce moment.",
-                "Vous avez le fluide aujourd'hui. Ne changez rien.", "Même Jak ne peut rien face à une telle main.",
-                "C'est une leçon de Blackjack que vous me donnez là.", "Bravo ! Pourquoi ne pas célébrer cela avec un petit geste ?"
-            ],
-            lose: [
-                "Jak l'emporte cette fois, mais le combat continue ensemble.", "Un revers mineur. L'important est de rester dans la partie.",
-                "La chance a tourné. Mais chaque tentative nous rapproche de la solution.", "La maison gagne, mais votre soutien reste inestimable.",
-                "Ce n'était pas votre donne, mais la prochaine sera différente.", "Gardez la tête haute, le jeu est une roue qui tourne.",
-                "Un coup du sort... comme il en existe tant en recherche.", "Jak a eu de la chance, mais votre stratégie était la bonne.",
-                "La banque gagne, mais votre esprit reste conquérant.", "Une manche difficile, mais la partie est loin d'être finie.",
-                "Le hasard est parfois cruel, mais il ne définit pas votre valeur.", "Rien n'est perdu tant que l'espoir est à la table.",
-                "Une défaite qui prépare une plus grande victoire.", "Jak garde la main, pour le moment du moins.",
-                "La science avance par échecs et réussites. Comme nous ici.", "Un petit pas en arrière pour mieux sauter ensuite.",
-                "La persévérance est la clé, au casino comme dans la vie.", "Ne laissez pas Jak vous impressionner, reprenez la main.",
-                "Le destin teste votre détermination. Prêt à relancer ?", "La manche se termine, mais l'engagement demeure."
-            ],
-            memory_loss: [
-                "La route est sinueuse, mais chaque main jouée soutient une cause plus grande.",
-                "Gardez espoir, la recherche aussi connaît des revers, mais on ne lâche rien.",
-                "Ne vous découragez pas, votre présence ici est déjà une victoire.",
-                "Même dans la tempête, votre soutien brille comme un phare.",
-                "La persévérance finit toujours par payer, j'en suis convaincu.",
-                "Chaque perte ici est une leçon d'humilité face à la maladie.",
-                "Jak est dur aujourd'hui, mais votre cause est plus forte.",
-                "Restons solidaires, le vent finira par tourner en votre faveur.",
-                "Un revers n'est qu'un prélude à une plus belle remontée.",
-                "Votre ténacité m'inspire. Ne quittez pas le combat."
-            ]
+            start: ["Les jeux sont faits. Voyons ce que le destin nous réserve...", "Une mise audacieuse ! J'aime votre panache.", "Concentration... La science et le jeu demandent de la rigueur.", "C'est parti. Pour la recherche et pour le plaisir !", "Le tapis est à vous. Faites briller votre intuition.", "Une mise de connaisseur. Voyons la donne.", "Le silence, les cartes, l'espoir... La partie commence.", "Chaque jeton posé est un pas vers l'inconnu.", "La table est chaude aujourd'hui, profitez-en.", "Une stratégie se dessine... je le sens.", "Bienvenue au cœur de l'action. Je distribue.", "Votre confiance m'impressionne. Jouons.", "La chance n'est qu'une probabilité qui attend son heure.", "Un duel d'esprit, c'est ce qu'il nous fallait.", "Rien ne vaut l'adrénaline d'une belle donne.", "Vos jetons sont en place, mon jeu aussi.", "La rigueur du hasard... fascinant, n'est-ce pas ?", "Installez-vous confortablement, le duel commence.", "Une mise solide. Le respect est mutuel à cette table.", "Que les cartes parlent pour nous ce soir."],
+            win: ["21 ! Magnifique. Si seulement chaque combat finissait ainsi.", "Vous avez battu la maison ! Votre intuition est remarquable.", "Le destin a choisi son camp : le vôtre. Bravo !", "Une victoire éclatante. La science de la gagne est en vous.", "C'est ce qu'on appelle un coup de maître.", "Splendide ! Vos gains s'envolent, tout comme nos espoirs.", "La chance vous accompagne... et c'est une excellente nouvelle.", "Vous lisez dans mon jeu comme dans un livre ouvert.", "Une main parfaite. Rien à ajouter, sinon mes félicitations.", "Le 21 est tombé ! Un moment de grâce à cette table.", "Vous dominez le tapis. Jak s'incline avec respect.", "C'est ainsi qu'on gagne les grandes batailles.", "Quelle audace récompensée ! C'est rafraîchissant.", "Votre portefeuille se porte à merveille, tout comme votre moral.", "Un gain mérité. Votre patience a payé.", "Le son de la victoire... savourez ce moment.", "Vous avez le fluide aujourd'hui. Ne changez rien.", "Même Jak ne peut rien face à une telle main.", "C'est une leçon de Blackjack que vous me donnez là.", "Bravo ! Pourquoi ne pas célébrer cela avec un petit geste ?"],
+            lose: ["Jak l'emporte cette fois, mais le combat continue ensemble.", "Un revers mineur. L'important est de rester dans la partie.", "La chance a tourné. Mais chaque tentative nous rapproche de la solution.", "La maison gagne, mais votre soutien reste inestimable.", "Ce n'était pas votre donne, mais la prochaine sera différente.", "Gardez la tête haute, le jeu est une roue qui tourne.", "Un coup du sort... comme il en existe tant en recherche.", "Jak a eu de la chance, mais votre stratégie était la bonne.", "La banque gagne, mais votre esprit reste conquérant.", "Une manche difficile, mais la partie est loin d'être finie.", "Le hasard est parfois cruel, mais il ne définit pas votre valeur.", "Rien n'est perdu tant que l'espoir est à la table.", "Une défaite qui prépare une plus grande victoire.", "Jak garde la main, pour le moment du moins.", "La science avance par échecs et réussites. Comme nous ici.", "Un petit pas en arrière pour mieux sauter ensuite.", "La persévérance est la clé, au casino comme dans la vie.", "Ne laissez pas Jak vous impressionner, reprenez la main.", "Le destin teste votre détermination. Prêt à relancer ?", "La manche se termine, mais l'engagement demeure."],
+            hit: ["Une carte de plus... la prise de risque est nécessaire pour avancer.", "On tente le tout pour le tout ? J'admire votre détermination.", "Prudence ou audace ? C'est là que tout se joue.", "Le frisson de la carte supplémentaire... classique.", "Une décision réfléchie. Voyons ce que le sabot nous donne.", "Vous cherchez le 21 ? Une quête noble.", "La tension monte d'un cran. Voici votre carte.", "On ne gagne rien sans oser. Belle initiative.", "Un choix qui pourrait tout changer. Suspendons notre souffle.", "La prochaine carte sera peut-être celle de la victoire.", "Vous ne vous contentez pas du minimum, j'aime ça.", "Chaque carte tirée est une nouvelle chance de briller.", "La stratégie s'affine. Une décision de pro.", "On demande ? On reçoit. Voici pour vous.", "L'adrénaline à l'état pur. C'est ça, le Blackjack.", "Vous avez l'oeil du tigre. Voyons le résultat.", "Une carte de plus pour l'histoire. À vous de jouer.", "Le risque est calculé, la tension est palpable.", "Vous jouez avec le feu... ou avec le génie ?", "La carte arrive. Le destin est en marche."],
+            memory_loss: ["La route est sinueuse, mais chaque main jouée soutient une cause plus grande.", "Gardez espoir, la recherche aussi connaît des revers, mais on ne lâche rien.", "Ne vous découragez pas, votre présence ici est déjà une victoire.", "Même dans la tempête, votre soutien brille comme un phare.", "La persévérance finit toujours par payer, j'en suis convaincu."]
         };
-
-        // --- FONCTIONS MOTEUR ---
 
         function typeWriter(text, i = 0) {
             const el = document.getElementById('jak-msg');
             if (i === 0) el.innerHTML = '"';
-            if (i < text.length) {
-                el.innerHTML += text.charAt(i);
-                setTimeout(() => typeWriter(text, i + 1), 25);
-            } else {
-                el.innerHTML += '"';
-            }
+            if (i < text.length) { el.innerHTML += text.charAt(i); setTimeout(() => typeWriter(text, i + 1), 25); }
+            else { el.innerHTML += '"'; }
         }
 
-        function jakSpeak(category) {
-            let phrases = jakTalk[category];
-            if (lossStreak >= 3 && (category === 'start' || category === 'lose')) {
-                phrases = jakTalk.memory_loss;
-            }
-            const randomText = phrases[Math.floor(Math.random() * phrases.length)];
-            typeWriter(randomText);
+        function jakSpeak(cat) {
+            let phrases = (lossStreak >= 3 && (cat === 'start' || cat === 'lose')) ? jakTalk.memory_loss : jakTalk[cat];
+            typeWriter(phrases[Math.floor(Math.random() * phrases.length)]);
         }
 
-        function updateDisplay() {
-            const balanceEl = document.getElementById('balance-display');
-            balanceEl.innerText = "$" + balance.toLocaleString();
+        function createDeck() {
+            const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const symbols = ['♠', '♥', '♦', '♣'];
+            deck = [];
+            for (let s of symbols) for (let v of values) {
+                let p = parseInt(v) || 10; if (v === 'A') p = 11;
+                deck.push({ n: v, s: s, p: p });
+            }
+            deck.sort(() => Math.random() - 0.5);
+        }
+
+        function getScore(hand) {
+            let s = hand.reduce((acc, c) => acc + c.p, 0), aces = hand.filter(c => c.n === 'A').length;
+            while (s > 21 && aces > 0) { s -= 10; aces--; } return s;
+        }
+
+        function renderHand(hand, id, hide = false) {
+            document.getElementById(id).innerHTML = hand.map((c, i) => 
+                `<div class="card" style="color:${(c.s === '♥' || c.s === '♦') ? 'red' : 'black'}">${(hide && i === 0) ? '?' : c.n + '<br>' + c.s}</div>`
+            ).join('');
+        }
+
+        function updateUI() {
+            document.getElementById('balance-display').innerText = "$" + balance.toLocaleString();
             document.getElementById('current-bet-display').innerText = "MISE : $" + currentBet.toLocaleString();
             document.getElementById('btn-start-deal').style.display = currentBet > 0 ? 'inline-block' : 'none';
-            
-            // Changement de couleur si on est en "dette" (Module futur)
-            if (localStorage.getItem('jak_status') === 'debt') {
-                balanceEl.classList.remove('status-green');
-                balanceEl.classList.add('status-red');
-            }
         }
 
         function createChips() {
             const values = [20, 50, 100, 500, 1000, 5000];
-            const container = document.getElementById('chips-box');
-            container.innerHTML = '';
-            
+            const container = document.getElementById('chips-box'); container.innerHTML = '';
             values.forEach(v => {
                 if (v <= balance) {
-                    const chip = document.createElement('div');
-                    chip.className = `chip chip-${v}`;
-                    chip.innerText = "$" + v;
-                    chip.onclick = () => addBet(v);
+                    const chip = document.createElement('div'); chip.className = `chip chip-${v}`;
+                    chip.innerText = "$" + v; chip.onclick = () => { balance -= v; currentBet += v; updateUI(); createChips(); };
                     container.appendChild(chip);
                 }
             });
         }
 
-        function addBet(amount) {
-            if (balance >= amount) {
-                balance -= amount;
-                currentBet += amount;
-                updateDisplay();
-                createChips();
-            }
-        }
-
-        function resetBet() {
-            balance += currentBet;
-            currentBet = 0;
-            updateDisplay();
-            createChips();
-        }
+        function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
 
         function startDeal() {
-            document.getElementById('bet-area').style.opacity = '0.3';
-            document.getElementById('bet-area').style.pointerEvents = 'none';
+            document.getElementById('bet-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            createDeck();
+            playerHand = [deck.pop(), deck.pop()];
+            jakHand = [deck.pop(), deck.pop()];
             jakSpeak('start');
-            
-            // Appel vers la suite (Module 3 complet avec cartes)
-            setTimeout(() => {
-                alert("Jak distribue les cartes... (Prêt pour l'étape suivante)");
-            }, 1000);
+            renderHand(playerHand, 'player-cards');
+            renderHand(jakHand, 'jak-cards', true);
+            document.getElementById('player-score-val').innerText = "SCORE : " + getScore(playerHand);
         }
 
-        window.onload = () => {
-            updateDisplay();
-            createChips();
-        };
+        function playerHit() {
+            playerHand.push(deck.pop()); renderHand(playerHand, 'player-cards');
+            let s = getScore(playerHand); document.getElementById('player-score-val').innerText = "SCORE : " + s;
+            if (s > 21) endGame('lose'); else jakSpeak('hit');
+        }
+
+        function playerStay() {
+            renderHand(jakHand, 'jak-cards', false);
+            let js = getScore(jakHand); while (js < 17) { jakHand.push(deck.pop()); js = getScore(jakHand); }
+            renderHand(jakHand, 'jak-cards', false);
+            let ps = getScore(playerHand);
+            if (js > 21 || ps > js) endGame('win'); else if (ps === js) endGame('draw'); else endGame('lose');
+        }
+
+        function endGame(res) {
+            document.getElementById('game-controls').style.display = 'none';
+            jakSpeak(res);
+            if (res === 'win') { balance += currentBet * 2; lossStreak = 0; } else if (res === 'lose') { lossStreak++; } else { balance += currentBet; }
+            currentBet = 0;
+            setTimeout(() => { alert("Fin de manche. Jak ramasse les cartes..."); location.reload(); }, 4000);
+        }
+
+        window.onload = () => { updateUI(); createChips(); };
     </script>
 </body>
 </html>
