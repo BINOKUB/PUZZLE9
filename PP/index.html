@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PP | Paire Parfaite</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --cyan: #00f3ff; --magenta: #ff00ff; --neon-green: #39ff14; --neon-red: #ff3131; --bg: #050505;
+        }
+        body {
+            background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px;
+        }
+        
+        /* Barres de statut style JAK-21 */
+        .status-bar {
+            width: 100%; max-width: 600px; display: flex; justify-content: space-between;
+            padding: 12px 20px; background: rgba(255,255,255,0.05); border-radius: 50px;
+            border: 1px solid var(--cyan); margin-bottom: 15px; box-shadow: 0 0 15px rgba(0,243,255,0.2);
+            font-size: 0.9rem; font-weight: bold;
+        }
+
+        .jak-bubble {
+            background: #fff; color: #000; padding: 15px 25px; border-radius: 20px;
+            margin-bottom: 20px; font-style: italic; position: relative;
+            box-shadow: 0 0 20px var(--cyan); max-width: 80%; min-height: 50px;
+            display: flex; align-items: center; justify-content: center; text-align: center;
+        }
+
+        /* Grille de jeu optimisée */
+        #game-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 4px;
+            background: rgba(0, 243, 255, 0.05);
+            padding: 8px;
+            border: 2px solid var(--cyan);
+            border-radius: 15px;
+            box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
+            max-width: 450px;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1; width: 100%;
+            background: #111; border: 1px solid rgba(0, 243, 255, 0.3);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 0.8rem; font-weight: bold; cursor: pointer;
+            transition: all 0.2s; border-radius: 4px; color: #fff;
+        }
+
+        .grid-cell:hover:not(.orphan):not(.is-paired) {
+            background: var(--cyan); color: #000; box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .grid-cell.selected {
+            border: 2px solid var(--magenta); background: rgba(255, 0, 255, 0.2);
+            transform: scale(1.1); z-index: 10; box-shadow: 0 0 15px var(--magenta);
+        }
+
+        .grid-cell.orphan {
+            background: #222; color: #444; border-color: #333; cursor: not-allowed; opacity: 0.5;
+        }
+
+        /* Couleurs des bases lumineuses */
+        .paired-1 { color: #ff3131; text-shadow: 0 0 5px #ff3131; border-color: #ff3131; }
+        .paired-2 { color: #00f3ff; text-shadow: 0 0 5px #00f3ff; border-color: #00f3ff; }
+        .paired-3 { color: #39ff14; text-shadow: 0 0 5px #39ff14; border-color: #39ff14; }
+        .paired-4 { color: #ff00ff; text-shadow: 0 0 5px #ff00ff; border-color: #ff00ff; }
+        .paired-5 { color: #ffea00; text-shadow: 0 0 5px #ffea00; border-color: #ffea00; }
+        .paired-6 { color: #ff5e00; text-shadow: 0 0 5px #ff5e00; border-color: #ff5e00; }
+        .paired-7 { color: #0026ff; text-shadow: 0 0 5px #0026ff; border-color: #0026ff; }
+        .paired-8 { color: #ffffff; text-shadow: 0 0 5px #ffffff; border-color: #ffffff; }
+        .paired-9 { color: #7b00ff; text-shadow: 0 0 5px #7b00ff; border-color: #7b00ff; }
+
+        /* Menu Config */
+        .config-screen {
+            text-align: center; max-width: 400px; padding: 30px;
+            border: 2px solid var(--magenta); border-radius: 30px;
+            background: rgba(255, 0, 255, 0.02); box-shadow: 0 0 30px rgba(255, 0, 255, 0.1);
+        }
+        select, button {
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 25px;
+            border: none; font-weight: bold; font-size: 1rem; cursor: pointer;
+        }
+        select { background: #222; color: white; border: 1px solid var(--cyan); }
+        .btn-main { background: var(--neon-green); color: black; box-shadow: 0 0 15px var(--neon-green); }
+        .btn-sec { background: var(--cyan); color: black; margin-top: 20px; }
+
+        .partner-logo { width: 120px; margin-top: 30px; opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+    <div id="app-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        </div>
+
+    <img src="../CANCER-DU-SANG-DU-CANADA.jpg" class="partner-logo">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const appContainer = document.getElementById('app-container');
+            const DIFFICULTY_CONFIG = {
+                PRATIQUE: { minDigits: 2, maxDigits: 4, points: 0 },
+                FACILE: { minDigits: 2, maxDigits: 2, points: 50 },
+                INTERMEDIAIRE: { minDigits: 3, maxDigits: 3, points: 150 },
+                DIFFICILE: { minDigits: 4, maxDigits: 4, points: 1000 }
+            };
+
+            let settings = {};
+            let timerInterval = null, timeElapsed = 0, score = 0, mistakesMade = 0;
+            let gameBoard = [], firstSelection = null;
+
+            function showConfigScreen() {
+                clearInterval(timerInterval);
+                appContainer.innerHTML = `
+                    <h1 style="color:var(--cyan); text-shadow: 0 0 10px var(--cyan);">PAIRE PARFAITE</h1>
+                    <div class="jak-bubble">"Associez les nombres ayant la même base mathématique. Prêt ?"</div>
+                    <div class="config-screen">
+                        <select id="difficulty-select">
+                            <option value="PRATIQUE">Mode Pratique</option>
+                            <option value="FACILE">Facile (2 chiffres)</option>
+                            <option value="INTERMEDIAIRE" selected>Intermédiaire (3 chiffres)</option>
+                            <option value="DIFFICILE">Difficile (4 chiffres)</option>
+                        </select>
+                        <button id="start-btn" class="btn-main">LANCER LE DÉFI</button>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">
+                            Exemple : 54 -> 5+4 = 9. Base = 9.
+                        </p>
+                    </div>
+                `;
+                document.getElementById('start-btn').addEventListener('click', () => {
+                    startGame(document.getElementById('difficulty-select').value);
+                });
+            }
+
+            function getBase(number) {
+                let n = Math.abs(number);
+                return (n - 1) % 9 + 1;
+            }
+
+            function generateValidNumber(minDigits, maxDigits) {
+                const numDigits = Math.floor(Math.random() * (maxDigits - minDigits + 1)) + minDigits;
+                const min = Math.pow(10, numDigits - 1);
+                const max = Math.pow(10, numDigits) - 1;
+                let num = Math.floor(Math.random() * (max - min + 1)) + min;
+                return num.toString().includes('0') ? generateValidNumber(minDigits, maxDigits) : num;
+            }
+
+            function startGame(difficulty) {
+                settings = { difficulty, ...DIFFICULTY_CONFIG[difficulty] };
+                score = 0; mistakesMade = 0; timeElapsed = 0; firstSelection = null;
+                
+                let numbers = new Set();
+                while (numbers.size < 81) { numbers.add(generateValidNumber(settings.minDigits, settings.maxDigits)); }
+                
+                let numbersArray = Array.from(numbers).map(num => ({ number: num, base: getBase(num) }));
+                let baseCounts = {};
+                numbersArray.forEach(n => { baseCounts[n.base] = (baseCounts[n.base] || 0) + 1; });
+
+                let orphans = new Set();
+                for (let b = 1; b <= 9; b++) {
+                    if (baseCounts[b] % 2 !== 0) {
+                        const candidates = numbersArray.filter(n => n.base === b);
+                        orphans.add(candidates[Math.floor(Math.random() * candidates.length)].number);
+                    }
+                }
+                
+                gameBoard = numbersArray.map(n => ({ ...n, isOrphan: orphans.has(n.number), isPaired: false }));
+                showGameScreen();
+                renderBoard();
+                startTimer();
+            }
+
+            function showGameScreen() {
+                appContainer.innerHTML = `
+                    <div class="status-bar">
+                        <span id="score-display" style="color:var(--neon-green)">SCORE : 0</span>
+                        <span id="pairs-display">PAIRES : 0/0</span>
+                        <span id="timer-display" style="color:var(--cyan)">00:00</span>
+                    </div>
+                    <div id="game-grid"></div>
+                    <button onclick="location.reload()" class="btn-sec">QUITTER LA TABLE</button>
+                `;
+            }
+
+            function renderBoard() {
+                const grid = document.getElementById('game-grid');
+                grid.innerHTML = '';
+                gameBoard.forEach((cellData, index) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell' + (cellData.isOrphan ? ' orphan' : '') + (cellData.isPaired ? ` is-paired paired-${cellData.base}` : '');
+                    cell.textContent = cellData.number;
+                    if (!cellData.isOrphan && !cellData.isPaired) {
+                        cell.onclick = () => onCellClick(cell, index);
+                    }
+                    grid.appendChild(cell);
+                });
+                updateStats();
+            }
+
+            function onCellClick(element, index) {
+                if (firstSelection && firstSelection.index === index) {
+                    element.classList.remove('selected');
+                    firstSelection = null;
+                    return;
+                }
+                if (!firstSelection) {
+                    firstSelection = { element, index };
+                    element.classList.add('selected');
+                } else {
+                    const firstNum = gameBoard[firstSelection.index];
+                    const secondNum = gameBoard[index];
+                    
+                    if (firstNum.base === secondNum.base) {
+                        score += settings.points;
+                        firstNum.isPaired = true; secondNum.isPaired = true;
+                        launchMiniConfetti();
+                    } else {
+                        score = Math.max(0, score - (settings.points / 2));
+                        mistakesMade++;
+                    }
+                    firstSelection = null;
+                    renderBoard();
+                    checkWin();
+                }
+            }
+
+            function updateStats() {
+                document.getElementById('score-display').textContent = `SCORE : ${score}`;
+                const totalPairs = Math.floor(gameBoard.filter(n => !n.isOrphan).length / 2);
+                const foundPairs = gameBoard.filter(n => n.isPaired).length / 2;
+                document.getElementById('pairs-display').textContent = `PAIRES : ${foundPairs}/${totalPairs}`;
+            }
+
+            function startTimer() {
+                timerInterval = setInterval(() => {
+                    timeElapsed++;
+                    const m = Math.floor(timeElapsed / 60).toString().padStart(2, '0');
+                    const s = (timeElapsed % 60).toString().padStart(2, '0');
+                    document.getElementById('timer-display').textContent = `${m}:${s}`;
+                }, 1000);
+            }
+
+            function launchMiniConfetti() {
+                confetti({ particleCount: 40, spread: 50, origin: { y: 0.8 }, colors: ['#00f3ff', '#ff00ff'] });
+            }
+
+            function checkWin() {
+                const totalPairs = Math.floor(gameBoard.filter(n => !n.isOrphan).length / 2);
+                const foundPairs = gameBoard.filter(n => n.isPaired).length / 2;
+                if (foundPairs === totalPairs) {
+                    clearInterval(timerInterval);
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                    setTimeout(() => {
+                        alert(`DÉFI RÉUSSI !\nScore Final : ${score}\nTemps : ${document.getElementById('timer-display').textContent}`);
+                        showConfigScreen();
+                    }, 1000);
+                }
+            }
+
+            showConfigScreen();
+        });
+    </script>
+</body>
+</html>
