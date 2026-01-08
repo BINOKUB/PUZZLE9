@@ -3,11 +3,20 @@ let currentBet = 0, deck = [], playerHand = [], jakHand = [];
 
 const jakTalk = {
     start: ["Les jeux sont faits. Voyons ce que le destin nous réserve...", "Une mise audacieuse ! J'aime votre panache."],
-    win: ["21 ! Magnifique. Une victoire éclatante pour vous !", "Vous avez battu la maison ! Votre intuition est remarquable."],
+    win: ["21 ! Magnifique. Une victoire éclatante pour vous !", "Le 21 est tombé ! Un moment de grâce à cette table."],
     lose: ["Jak l'emporte cette fois, mais le combat continue.", "Un revers mineur. L'important est de rester dans la partie."],
     draw: ["Égalité ! La banque vous rend votre mise.", "Match nul. On recommence ?"],
-    bankruptcy: ["C'est à sec... Mais Jak ne laisse jamais un partenaire au bord de la route.", "Besoin d'un coup de pouce ? La recherche n'attend pas."]
+    bankruptcy: ["C'est à sec... Mais Jak ne laisse jamais un partenaire au bord de la route."]
 };
+
+function launchConfetti() {
+    confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#00f3ff', '#ff00ff', '#39ff14'] // Couleurs BINOKUB
+    });
+}
 
 function typeWriter(text, i = 0) {
     const el = document.getElementById('jak-msg');
@@ -25,7 +34,6 @@ function jakSpeak(cat) {
 function updateUI() {
     const balEl = document.getElementById('balance-display');
     balEl.innerText = "$" + balance.toLocaleString();
-    
     if (localStorage.getItem('jak_loan') === 'true') {
         balEl.className = 'balance-box status-red';
     } else {
@@ -74,6 +82,7 @@ function renderHand(hand, id, hide = false) {
 function startDeal() {
     document.getElementById('bet-area').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
+    document.getElementById('win-display').style.display = 'none';
     createDeck();
     playerHand = [deck.pop(), deck.pop()]; jakHand = [deck.pop(), deck.pop()];
     renderHand(playerHand, 'player-cards'); renderHand(jakHand, 'jak-cards', true);
@@ -112,37 +121,36 @@ function endGame(res) {
     winBox.style.display = 'block';
     
     if (res === 'win') {
-        balance += currentBet * 2; winBox.innerText = "GAGNÉ !"; winBox.style.color = "var(--neon-green)";
+        let gain = currentBet * 2;
+        let isBlackjack = (getScore(playerHand) === 21 && playerHand.length === 2);
+        if (isBlackjack) {
+            gain = currentBet * 2.5;
+            winBox.innerHTML = "BLACKJACK !<br>VOUS REMPORTEZ $" + gain.toLocaleString();
+        } else {
+            winBox.innerHTML = "GAGNÉ !<br>VOUS REMPORTEZ $" + gain.toLocaleString();
+        }
+        balance += gain; 
+        winBox.style.color = "var(--neon-green)";
+        launchConfetti(); // EXPLOSION DE JOIE !
     } else if (res === 'draw') {
-        balance += currentBet; winBox.innerText = "PUSH"; winBox.style.color = "var(--cyan)";
+        balance += currentBet; 
+        winBox.innerText = "PUSH : $" + currentBet.toLocaleString() + " RENDUS";
+        winBox.style.color = "var(--cyan)";
     } else {
-        winBox.innerText = "PERDU..."; winBox.style.color = "var(--neon-red)";
+        winBox.innerText = "PERDU..."; 
+        winBox.style.color = "var(--neon-red)";
     }
     
     localStorage.setItem('jak_capital', balance);
     currentBet = 0;
     updateUI();
-
     setTimeout(() => {
-        if (balance < 20) {
-            jakSpeak('bankruptcy');
-            document.getElementById('loan-modal').style.display = 'flex';
-        } else {
-            location.reload();
-        }
-    }, 3000);
-}
-
-function acceptLoan() {
-    balance = 500;
-    localStorage.setItem('jak_capital', balance);
-    localStorage.setItem('jak_loan', 'true');
-    location.reload();
-}
-
-function declineLoan() {
-    window.location.href = "index.html";
+        if (balance < 20) { document.getElementById('loan-modal').style.display = 'flex'; }
+        else { location.reload(); }
+    }, 4500);
 }
 
 window.onload = () => { updateUI(); createChips(); };
 function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
+function acceptLoan() { balance = 500; localStorage.setItem('jak_capital', balance); localStorage.setItem('jak_loan', 'true'); location.reload(); }
+function declineLoan() { window.location.href = "index.html"; }
