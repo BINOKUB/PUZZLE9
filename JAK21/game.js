@@ -9,12 +9,13 @@ const jakTalk = {
     bankruptcy: ["C'est à sec... Mais Jak ne laisse jamais un partenaire au bord de la route."]
 };
 
+// --- EFFETS VISUELS ---
 function launchConfetti() {
     confetti({
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#00f3ff', '#ff00ff', '#39ff14'] // Couleurs BINOKUB
+        colors: ['#00f3ff', '#ff00ff', '#39ff14']
     });
 }
 
@@ -31,6 +32,7 @@ function jakSpeak(cat) {
     typeWriter(jakTalk[cat][Math.floor(Math.random() * jakTalk[cat].length)]);
 }
 
+// --- INTERFACE ---
 function updateUI() {
     const balEl = document.getElementById('balance-display');
     balEl.innerText = "$" + balance.toLocaleString();
@@ -57,6 +59,7 @@ function createChips() {
     });
 }
 
+// --- LOGIQUE DE JEU ---
 function createDeck() {
     const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
     const symbols = ['♠', '♥', '♦', '♣'];
@@ -115,6 +118,7 @@ function playerStay() {
     }, 800);
 }
 
+// --- FIN DE MANCHE (CORRIGÉ) ---
 function endGame(res) {
     jakSpeak(res);
     const winBox = document.getElementById('win-display');
@@ -131,7 +135,7 @@ function endGame(res) {
         }
         balance += gain; 
         winBox.style.color = "var(--neon-green)";
-        launchConfetti(); // EXPLOSION DE JOIE !
+        launchConfetti();
     } else if (res === 'draw') {
         balance += currentBet; 
         winBox.innerText = "PUSH : $" + currentBet.toLocaleString() + " RENDUS";
@@ -144,13 +148,19 @@ function endGame(res) {
     localStorage.setItem('jak_capital', balance);
     currentBet = 0;
     updateUI();
+
     setTimeout(() => {
-        if (balance < 20) { document.getElementById('loan-modal').style.display = 'flex'; }
-        else { location.reload(); }
+        if (balance < 20) {
+            jakSpeak('bankruptcy');
+            document.getElementById('loan-modal').style.display = 'flex';
+        } else {
+            window.location.reload(); 
+        }
     }, 4500);
 }
 
+// --- ACTIONS CLIC ---
 window.onload = () => { updateUI(); createChips(); };
 function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
-function acceptLoan() { balance = 500; localStorage.setItem('jak_capital', balance); localStorage.setItem('jak_loan', 'true'); location.reload(); }
+function acceptLoan() { balance = 500; localStorage.setItem('jak_capital', balance); localStorage.setItem('jak_loan', 'true'); window.location.reload(); }
 function declineLoan() { window.location.href = "index.html"; }
