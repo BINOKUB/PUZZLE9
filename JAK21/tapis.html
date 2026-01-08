@@ -59,7 +59,7 @@
         .btn-play {
             background: var(--neon-green); color: black; border: none; padding: 15px 45px;
             border-radius: 30px; font-weight: bold; font-size: 1.3rem; cursor: pointer;
-            box-shadow: 0 0 25px var(--neon-green);
+            box-shadow: 0 0 25px var(--neon-green); transition: 0.3s;
         }
 
         #loan-modal {
@@ -80,26 +80,10 @@
 
         #win-display { display: none; font-size: 2.2rem; font-weight: bold; margin: 20px 0; line-height: 1.2; }
         .partner-logo { width: 140px; margin-top: 40px; opacity: 0.8; }
+        
+        /* Animation pour le bouton de don */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-
-<div id="donation-zone" style="display:none; margin-top: 20px; animation: fadeIn 1s;">
-    <p style="color: #aaa; font-size: 0.9rem; font-style: italic;">
-        "Une partie de vos gains fictifs pourrait devenir un espoir réel."
-    </p>
-    <a href="https://www.cancersdusang.ca/?form=donate&utm_source=match&utm_medium=email&utm_campaign=AugustMatch_2025&utm_content=email3_fr_banner" 
-       target="_blank" 
-       class="btn-play" 
-       style="background: var(--magenta); box-shadow: 0 0 20px var(--magenta); text-decoration: none; display: inline-block;">
-       FAIRE UN DON RÉEL ❤️
-    </a>
-</div>
-
-    <div id="next-round-zone" style="display:none; margin-top: 20px;">
-    <button class="btn-play" onclick="window.location.reload()" style="background: var(--cyan); box-shadow: 0 0 15px var(--cyan);">
-        CONTINUER À JOUER
-    </button>
-</div>
-    
 </head>
 <body>
 
@@ -116,7 +100,7 @@
             <div class="chips-container" id="chips-box"></div>
             <div class="current-bet" id="current-bet-display" style="font-size:1.8rem; color:var(--cyan); margin:15px 0;">MISE : $0</div>
             <button class="btn-play" id="btn-start-deal" onclick="startDeal()" style="display:none;">VALIDER LA MISE</button>
-            <br><button onclick="resetBet()" style="background:none; border:none; color:#555; cursor:pointer; text-decoration:underline; margin-top:15px;">Réinitialiser</button>
+            <br><button onclick="resetBet()" style="background:none; border:none; color:#555; cursor:pointer; text-decoration:underline; margin-top:15px;">Réinitialiser la mise</button>
         </div>
 
         <div id="game-area" style="display:none;">
@@ -130,13 +114,32 @@
                 <button class="btn-play" style="background: var(--magenta); box-shadow: 0 0 15px var(--magenta);" onclick="playerStay()">RESTER</button>
             </div>
         </div>
+
         <div id="win-display"></div>
+
+        <div id="donation-zone" style="display:none; margin-top: 20px; animation: fadeIn 1s;">
+            <p style="color: #aaa; font-size: 0.9rem; font-style: italic;">
+                "Une partie de vos gains fictifs pourrait devenir un espoir réel."
+            </p>
+            <a href="https://www.cancersdusang.ca/?form=donate&utm_source=match&utm_medium=email&utm_campaign=AugustMatch_2025&utm_content=email3_fr_banner" 
+               target="_blank" 
+               class="btn-play" 
+               style="background: var(--magenta); box-shadow: 0 0 20px var(--magenta); text-decoration: none; display: inline-block; padding: 10px 25px; font-size: 1.1rem;">
+                FAIRE UN DON RÉEL ❤️
+            </a>
+        </div>
+
+        <div id="next-round-zone" style="display:none; margin-top: 25px;">
+            <button class="btn-play" onclick="window.location.reload()" style="background: var(--cyan); box-shadow: 0 0 15px var(--cyan);">
+                CONTINUER À JOUER
+            </button>
+        </div>
     </div>
 
     <div id="loan-modal">
         <div class="loan-content">
             <h2 style="color:var(--magenta); margin-bottom:20px;">BANQUEROUTE !</h2>
-            <p style="font-size:1.2rem;">Besoin d'un prêt de <strong>$500</strong> pour continuer ?</p>
+            <p style="font-size:1.2rem;">Jak ne vous laisse pas tomber. Prêt de <strong>$500</strong> ?</p>
             <div style="margin-top:30px;">
                 <button class="btn-loan btn-accept" onclick="acceptLoan()">ACCEPTER LE PRÊT</button>
                 <button class="btn-loan btn-decline" onclick="declineLoan()">DECLINER</button>
