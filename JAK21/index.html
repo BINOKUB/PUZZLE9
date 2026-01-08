@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAK-21 - Le Duel Solidaire</title>
+    <style>
+        :root {
+            --cyan: #00f3ff;
+            --magenta: #ff00ff;
+            --bg: #050505;
+        }
+        body {
+            background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px;
+            min-height: 100vh;
+        }
+        .table {
+            width: 100%; max-width: 500px; background: rgba(0, 243, 255, 0.03);
+            border: 2px solid var(--cyan); border-radius: 40px;
+            padding: 30px 15px; text-align: center; margin-top: 20px;
+            box-shadow: inset 0 0 50px rgba(0, 243, 255, 0.1);
+        }
+        .card-zone { display: flex; justify-content: center; gap: 10px; min-height: 110px; margin: 15px 0; }
+        .card {
+            background: white; color: black; width: 65px; height: 95px;
+            border-radius: 8px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; font-weight: bold;
+            font-size: 1.4rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            animation: deal 0.4s ease-out;
+        }
+        @keyframes deal { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .jak-bubble {
+            background: #fff; color: #000; padding: 12px 20px;
+            border-radius: 15px; margin-bottom: 20px; font-style: italic;
+            font-size: 0.9rem; max-width: 85%; position: relative;
+            box-shadow: 0 0 15px var(--cyan);
+        }
+        .jak-bubble::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            border-left: 10px solid transparent; border-right: 10px solid transparent;
+            border-top: 10px solid #fff; transform: translateX(-50%);
+        }
+        .controls { display: flex; gap: 15px; margin-top: 25px; }
+        .btn {
+            padding: 12px 25px; border-radius: 25px; border: none; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; transition: 0.2s;
+        }
+        .btn-hit { background: var(--cyan); color: #000; }
+        .btn-stay { background: var(--magenta); color: #fff; }
+        .btn-reset { background: transparent; border: 1px solid #444; color: #666; margin-top: 20px; }
+        
+        #score-display { color: var(--magenta); font-weight: bold; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: var(--cyan); text-shadow: 0 0 10px var(--cyan); margin: 0 0 20px 0;">JAK-21</h1>
+
+    <div class="jak-bubble" id="jak-msg">
+        "Bienvenue. Prêt pour un duel contre la maison ?"
+    </div>
+
+    <div class="table">
+        <div style="font-size: 0.7rem; color: var(--cyan); letter-spacing: 2px;">MAIN DE JAK</div>
+        <div id="jak-cards" class="card-zone">
+            <div class="card" style="background: #222; border: 1px solid var(--cyan);">?</div>
+        </div>
+
+        <div style="border-top: 1px solid rgba(0,243,255,0.1); margin: 20px 0;"></div>
+
+        <div id="player-cards" class="card-zone"></div>
+        <div id="score-display">VOTRE SCORE : 0</div>
+    </div>
+
+    <div class="controls" id="controls">
+        <button class="btn btn-hit" onclick="hit()">CARTE</button>
+        <button class="btn btn-stay" onclick="stay()">RESTER</button>
+    </div>
+
+    <div id="final-controls" style="display:none;">
+        <button class="btn btn-reset" onclick="initGame()">NOUVELLE DONNE</button>
+    </div>
+
+    <a href="../index.html" style="margin-top: 40px; color: #444; text-decoration: none; font-size: 0.8rem;">← RETOUR AU PORTAIL</a>
+
+    <script>
+        // Le moteur de Jak sera injecté ici
+    </script>
+</body>
+</html>
