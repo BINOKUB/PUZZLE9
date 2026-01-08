@@ -189,38 +189,103 @@
         function resetBet() { balance += currentBet; currentBet = 0; updateUI(); createChips(); }
 
         function startDeal() {
-            document.getElementById('bet-area').style.display = 'none';
-            document.getElementById('game-area').style.display = 'block';
-            createDeck();
-            playerHand = [deck.pop(), deck.pop()];
-            jakHand = [deck.pop(), deck.pop()];
-            jakSpeak('start');
-            renderHand(playerHand, 'player-cards');
-            renderHand(jakHand, 'jak-cards', true);
-            document.getElementById('player-score-val').innerText = "SCORE : " + getScore(playerHand);
-        }
+    // 1. Transition visuelle : On cache les jetons et on montre la table
+    document.getElementById('bet-area').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+    
+    // 2. Initialisation du jeu
+    createDeck();
+    playerHand = [deck.pop(), deck.pop()];
+    jakHand = [deck.pop(), deck.pop()];
+    
+    // 3. Jak prend la parole
+    jakSpeak('start');
+    
+    // 4. Distribution visuelle des cartes
+    renderHand(playerHand, 'player-cards');
+    renderHand(jakHand, 'jak-cards', true); // La première carte de Jak est cachée
+    
+    // 5. Mise à jour du score joueur
+    document.getElementById('player-score-val').innerText = "SCORE : " + getScore(playerHand);
+    
+    // 6. Vérification immédiate du Blackjack
+    if (getScore(playerHand) === 21) {
+        setTimeout(() => { playerStay(); }, 1000);
+    }
+}
 
-        function playerHit() {
-            playerHand.push(deck.pop()); renderHand(playerHand, 'player-cards');
-            let s = getScore(playerHand); document.getElementById('player-score-val').innerText = "SCORE : " + s;
-            if (s > 21) endGame('lose'); else jakSpeak('hit');
-        }
+function playerHit() {
+    playerHand.push(deck.pop());
+    renderHand(playerHand, 'player-cards');
+    
+    let currentScore = getScore(playerHand);
+    document.getElementById('player-score-val').innerText = "SCORE : " + currentScore;
+    
+    if (currentScore > 21) {
+        endGame('lose');
+    } else {
+        jakSpeak('hit');
+    }
+}
 
-        function playerStay() {
+function playerStay() {
+    // On cache les contrôles pendant que Jak joue
+    document.getElementById('game-controls').style.display = 'none';
+    
+    // Jak révèle sa carte
+    renderHand(jakHand, 'jak-cards', false);
+    let js = getScore(jakHand);
+    
+    // IA de Jak : il tire jusqu'à 17
+    const jakDrawInterval = setInterval(() => {
+        if (js < 17) {
+            jakHand.push(deck.pop());
             renderHand(jakHand, 'jak-cards', false);
-            let js = getScore(jakHand); while (js < 17) { jakHand.push(deck.pop()); js = getScore(jakHand); }
-            renderHand(jakHand, 'jak-cards', false);
-            let ps = getScore(playerHand);
-            if (js > 21 || ps > js) endGame('win'); else if (ps === js) endGame('draw'); else endGame('lose');
+            js = getScore(jakHand);
+        } else {
+            clearInterval(jakDrawInterval);
+            determineWinner();
         }
+    }, 800);
+}
 
-        function endGame(res) {
-            document.getElementById('game-controls').style.display = 'none';
-            jakSpeak(res);
-            if (res === 'win') { balance += currentBet * 2; lossStreak = 0; } else if (res === 'lose') { lossStreak++; } else { balance += currentBet; }
-            currentBet = 0;
-            setTimeout(() => { alert("Fin de manche. Jak ramasse les cartes..."); location.reload(); }, 4000);
-        }
+function determineWinner() {
+    let ps = getScore(playerHand);
+    let js = getScore(jakHand);
+    
+    if (js > 21 || ps > js) {
+        endGame('win');
+    } else if (ps === js) {
+        endGame('draw');
+    } else {
+        endGame('lose');
+    }
+}
+
+function endGame(res) {
+    document.getElementById('game-controls').style.display = 'none';
+    jakSpeak(res);
+    
+    // Gestion des gains fictifs
+    if (res === 'win') {
+        balance += currentBet * 2;
+        lossStreak = 0;
+        // Ici, nous pourrons ajouter l'appel aux confettis !
+    } else if (res === 'lose') {
+        lossStreak++;
+    } else {
+        balance += currentBet; // Remboursement en cas d'égalité
+    }
+    
+    // Sauvegarde du nouveau solde
+    localStorage.setItem('jak_capital', balance);
+    currentBet = 0;
+
+    // Relance une partie après 4 secondes pour laisser lire le message de Jak
+    setTimeout(() => {
+        location.reload(); 
+    }, 4500);
+}
 
         window.onload = () => { updateUI(); createChips(); };
     </script>
