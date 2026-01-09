@@ -52,25 +52,25 @@
 
         .card {
             width: var(--card-w); height: var(--card-h);
-            background: #fff; color: #000; border-radius: 6px;
-            font-weight: bold; position: relative; cursor: pointer;
+            background: #fff; color: #000 !important; /* TOUS LES NOMBRES EN NOIR */
+            border-radius: 6px; font-weight: bold; position: relative; cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
         .card.selected { border: 3px solid var(--magenta); box-shadow: 0 0 15px var(--magenta); }
         .card-back { background: linear-gradient(135deg, #111, #222); border: 1px solid var(--cyan); }
         
-        .card-val { position: absolute; top: 4px; left: 6px; font-size: 1.1rem; }
+        .card-val { position: absolute; top: 4px; left: 6px; font-size: 1.1rem; color: #000 !important; }
         .card-count { position: absolute; bottom: 4px; right: 6px; font-size: 0.7rem; color: #000 !important; font-weight: 900; }
 
-        .base-1 { color: #ff3131; } .base-2 { color: #00f3ff; } .base-3 { color: #39ff14; }
-        .base-4 { color: #ff00ff; } .base-5 { color: #ffea00; } .base-6 { color: #ff5e00; }
-        .base-7 { color: #0026ff; } .base-8 { color: #888888; } .base-9 { color: #7b00ff; }
+        /* Surbrillance du HINT en vert néon pour bien la distinguer */
+        .column.hint-glow { border: 2px solid var(--neon-green) !important; box-shadow: 0 0 20px var(--neon-green) !important; background: rgba(57, 255, 20, 0.1); }
 
         .footer-zone { margin-top: 25px; text-align: center; width: 100%; }
         .partner-logo { width: 150px; margin-top: 10px; }
         .jak-msg { font-style: italic; color: var(--cyan); font-size: 0.95rem; min-height: 50px; padding: 0 15px; display: flex; align-items: center; justify-content: center; }
         
-        button { background: none; color: var(--cyan); border: 1px solid var(--cyan); border-radius: 15px; padding: 5px 12px; cursor: pointer; font-weight: bold; }
+        button { background: none; color: var(--cyan); border: 1px solid var(--cyan); border-radius: 15px; padding: 5px 12px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { background: var(--cyan); color: #000; }
     </style>
 </head>
 <body>
@@ -98,7 +98,7 @@
     </div>
 
     <div class="footer-zone">
-        <div id="jak-talk" class="jak-msg">"Je m'occupe du rangement, concentrez-vous sur le calcul."</div>
+        <div id="jak-talk" class="jak-msg">"Calculez la base, Jak s'occupe du reste."</div>
         <img src="../CANCER-DU-SANG-DU-CANADA.jpg" class="partner-logo">
     </div>
 
@@ -112,7 +112,7 @@
                 "Vous avez l'œil vif aujourd'hui !", "Soyeux comme mouvement.", "Laissez-moi classer ce petit nouveau.",
                 "Magnifique ! La pile se remplit.", "Un vrai pro du calcul mental.", "Jak approuve ce choix stratégique.",
                 "C'est dans la boîte !", "Rangement automatique activé.", "Vous ne reculez devant rien !",
-                "La base 21 n'a qu'à bien se tenir.", "Excellent réflexe !", "On avance à pas de géant."
+                "Excellent réflexe !", "On avance à pas de géant."
             ],
             error: [
                 "Erreur de calcul ? Réessayez.", "Jak ne peut pas ranger ça ici.", "Cherchez bien la base...",
@@ -152,7 +152,6 @@
             if (!selectedCard) return;
             if (selectedCard.base === targetBase) {
                 foundations[targetBase].push(waste.pop());
-                // JAK RANGE : Plus petit au dessus (Tri décroissant)
                 foundations[targetBase].sort((a,b) => b.num - a.num);
                 selectedCard = null;
                 jakSpeak('success');
@@ -175,7 +174,7 @@
             if (waste.length > 0) {
                 const c = waste[waste.length - 1];
                 const el = document.createElement('div');
-                el.className = `card base-${c.base} ${selectedCard === c ? 'selected' : ''}`;
+                el.className = `card ${selectedCard === c ? 'selected' : ''}`;
                 el.innerHTML = `<div class="card-val">${c.num}</div>`;
                 el.onclick = (e) => { e.stopPropagation(); selectWaste(); };
                 wasteEl.appendChild(el);
@@ -200,19 +199,18 @@
                 };
 
                 if (expandedBase === i) {
-                    // Vue éclatée : On remet dans l'ordre croissant pour l'inspection
                     [...foundations[i]].reverse().forEach((c, idx) => {
                         const cardEl = document.createElement('div');
-                        cardEl.className = `card base-${c.base}`;
+                        cardEl.className = `card`;
                         cardEl.style.marginTop = idx === 0 ? "0" : "-65px";
                         cardEl.innerHTML = `<div class="card-val">${c.num}</div>`;
                         col.appendChild(cardEl);
                     });
                 } else {
                     if (foundations[i].length > 0) {
-                        const top = foundations[i][foundations[i].length - 1]; // Plus petit chiffre
+                        const top = foundations[i][foundations[i].length - 1]; 
                         const cardEl = document.createElement('div');
-                        cardEl.className = `card base-${top.base}`;
+                        cardEl.className = `card`;
                         cardEl.innerHTML = `<div class="card-val">${top.num}</div><div class="card-count">${foundations[i].length}</div>`;
                         col.appendChild(cardEl);
                     } else {
@@ -223,11 +221,19 @@
             }
         }
 
+        // --- CORRECTION DU HINT ---
         function useHint() {
-            if (!selectedCard) return;
-            const col = document.getElementById(`col-${selectedCard.base}`);
-            col.style.background = "rgba(0, 243, 255, 0.2)";
-            setTimeout(() => col.style.background = "", 1000);
+            if (!selectedCard) {
+                document.getElementById('jak-talk').innerText = '"Choisissez d\'abord une carte !"';
+                return;
+            }
+            const targetBase = selectedCard.base;
+            const col = document.getElementById(`col-${targetBase}`);
+            if (col) {
+                col.classList.add('hint-glow');
+                setTimeout(() => col.classList.remove('hint-glow'), 1200);
+                document.getElementById('jak-talk').innerText = `"Regardez la colonne Base ${targetBase}..."`;
+            }
         }
 
         function checkWin() {
