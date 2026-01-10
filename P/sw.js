@@ -1,25 +1,20 @@
-const CACHE_NAME = 'jak-patience-v1';
+const CACHE_NAME = 'patience-v1';
 const ASSETS = [
-  './tapis.html',
+  './',              // Ceci cible la racine du dossier /P/ (souvent index.html)
+  './index.html',    // À remplacer par le nom de ton fichier principal si ce n'est pas index.html
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
 ];
 
-// Installation du Service Worker et mise en cache des fichiers
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-// Stratégie de cache : Répondre avec le cache si disponible, sinon chercher sur le réseau
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((res) => {
-      return res || fetch(e.request);
-    })
+    caches.match(e.request).then((res) => res || fetch(e.request))
   );
 });
