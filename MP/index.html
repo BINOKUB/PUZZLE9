@@ -35,7 +35,6 @@
         }
         .lvl-btn.active { border-color: var(--highlight-focus); color: #000; background: var(--highlight-focus); }
 
-        /* CERCLE */
         #nexus-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
         #harmonic-nexus { position: relative; width: 600px; height: 600px; transform-origin: center center; }
 
@@ -47,7 +46,6 @@
         }
         .active-focus { border-color: var(--highlight-focus) !important; color: var(--highlight-focus); transform: scale(1.2); background: #000; }
 
-        /* PANNEAU D'INFO CORRIGÉ POUR LE WEB */
         #info-panel {
             width: 100%; min-height: 180px;
             background: var(--panel-bg); border-top: 1px solid #333;
@@ -55,8 +53,7 @@
             box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
         }
 
-        /* Colonne Gauche : Titre et Notes */
-        .panel-left { flex: 0 0 250px; display: flex; flex-direction: column; justify-content: center; }
+        .panel-left { flex: 0 0 280px; display: flex; flex-direction: column; justify-content: center; }
         .chord-title { font-size: 32px; color: var(--highlight-focus); margin: 0; font-weight: 300; }
         .chord-notes-display {
             font-family: 'Courier New', monospace;
@@ -64,7 +61,6 @@
             margin-top: 10px; letter-spacing: 2px;
         }
 
-        /* Colonne Droite : Gammes */
         .panel-right { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
         .scales-scroll { overflow-x: auto; scrollbar-width: none; width: 100%; }
         .scales-container { display: flex; gap: 15px; }
@@ -76,11 +72,9 @@
         .scale-name { color: var(--highlight-rel); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
         .scale-notes { color: #ccc; font-size: 12px; }
 
-        /* AJUSTEMENT MOBILE */
         @media (max-width: 768px) {
             #info-panel { flex-direction: column; gap: 10px; min-height: 200px; padding: 15px; }
             .panel-left { flex: none; text-align: center; align-items: center; }
-            .chord-notes-display { font-size: 16px; margin-bottom: 10px; }
         }
     </style>
 </head>
@@ -108,8 +102,7 @@
         <div class="panel-right">
             <div style="font-size:10px; color:#555; margin-bottom:10px; letter-spacing:1px;">GAMMES COMPATIBLES</div>
             <div class="scales-scroll">
-                <div class="scales-container" id="scales-list">
-                    </div>
+                <div class="scales-container" id="scales-list"></div>
             </div>
         </div>
     </div>
@@ -147,7 +140,37 @@
         };
 
         let currentLevel = 1;
+        let audioCtx = null;
         const nexus = document.getElementById('harmonic-nexus');
+
+        // --- MOTEUR AUDIO RÉTABLI ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playChordSound(rootChroma, type) {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
+            const masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+            masterGain.gain.setValueAtTime(0.15, now);
+            masterGain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+
+            formula.forEach((interval, i) => {
+                const osc = audioCtx.createOscillator();
+                // Octave 4 de base (480Hz environ pour le LA)
+                const freq = 16.35 * Math.pow(2, ((4 * 12) + rootChroma + interval) / 12);
+                osc.frequency.value = freq;
+                osc.type = i === 0 ? 'triangle' : 'sine';
+                osc.connect(masterGain);
+                osc.start(now + (i * 0.03));
+                osc.stop(now + 3);
+            });
+        }
 
         function renderNodes() {
             nexus.innerHTML = '';
@@ -168,6 +191,7 @@
             node.style.left = `${300 + radius * Math.cos(rad) - 32}px`;
             node.style.top = `${300 + radius * Math.sin(rad) - 32}px`;
             node.onclick = () => {
+                playChordSound(chroma, type); // Son réactivé ici
                 highlightNode(node);
                 updatePanel(text, chroma, type);
             };
@@ -181,13 +205,10 @@
 
         function updatePanel(chordName, chroma, type) {
             document.getElementById('panel-chord').innerText = chordName;
-
-            // CALCUL DES NOTES DE L'ACCORD
             const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
             const chordNotes = formula.map(interval => NOTES[(chroma + interval) % 12]).join(" . ");
             document.getElementById('panel-notes').innerText = chordNotes;
 
-            // MISE À JOUR DES GAMMES
             const container = document.getElementById('scales-list');
             container.innerHTML = '';
             (type === 'maj' ? SCALES.maj : SCALES.min).forEach(template => {
