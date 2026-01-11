@@ -25,7 +25,7 @@
             height: 100dvh; margin: 0; overflow: hidden;
         }
 
-        header { padding: 15px; text-align: center; z-index: 10; }
+        header { padding: 15px; text-align: center; z-index: 10; flex-shrink: 0; }
         h1 { font-weight: 300; letter-spacing: 6px; font-size: 18px; margin-bottom: 10px; }
 
         .complexity-selector { display: flex; justify-content: center; gap: 8px; }
@@ -35,7 +35,11 @@
         }
         .lvl-btn.active { border-color: var(--highlight-focus); color: #000; background: var(--highlight-focus); }
 
-        #nexus-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        /* CONTENEUR DU CERCLE */
+        #nexus-container { 
+            flex-grow: 1; display: flex; align-items: center; justify-content: center; 
+            position: relative; width: 100%; overflow: hidden;
+        }
         #harmonic-nexus { position: relative; width: 600px; height: 600px; transform-origin: center center; }
 
         .note-node {
@@ -46,35 +50,45 @@
         }
         .active-focus { border-color: var(--highlight-focus) !important; color: var(--highlight-focus); transform: scale(1.2); background: #000; }
 
+        /* PANNEAU D'INFO - FIX FLEXBOX */
         #info-panel {
-            width: 100%; min-height: 180px;
+            width: 100%; min-height: 160px;
             background: var(--panel-bg); border-top: 1px solid #333;
-            padding: 20px; display: flex; gap: 30px;
+            padding: 20px; display: flex; flex-direction: row; gap: 30px;
             box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            z-index: 20; flex-shrink: 0;
         }
 
-        .panel-left { flex: 0 0 280px; display: flex; flex-direction: column; justify-content: center; }
+        .panel-left { flex: 0 0 250px; display: flex; flex-direction: column; justify-content: center; }
         .chord-title { font-size: 32px; color: var(--highlight-focus); margin: 0; font-weight: 300; }
         .chord-notes-display {
             font-family: 'Courier New', monospace;
             color: #00f3ff; font-size: 18px; font-weight: bold;
-            margin-top: 10px; letter-spacing: 2px;
+            margin-top: 5px; letter-spacing: 2px;
         }
 
         .panel-right { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
-        .scales-scroll { overflow-x: auto; scrollbar-width: none; width: 100%; }
-        .scales-container { display: flex; gap: 15px; }
+        .scales-scroll { overflow-x: auto; scrollbar-width: none; width: 100%; -webkit-overflow-scrolling: touch; }
+        .scales-container { display: flex; gap: 15px; padding-bottom: 5px; }
         
         .scale-card {
             background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 4px;
-            padding: 10px 15px; min-width: 180px;
+            padding: 10px 15px; min-width: 180px; flex-shrink: 0;
         }
         .scale-name { color: var(--highlight-rel); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
         .scale-notes { color: #ccc; font-size: 12px; }
 
+        /* AJUSTEMENT MOBILE SÉCURISÉ */
         @media (max-width: 768px) {
-            #info-panel { flex-direction: column; gap: 10px; min-height: 200px; padding: 15px; }
-            .panel-left { flex: none; text-align: center; align-items: center; }
+            #info-panel { 
+                flex-direction: column; gap: 15px; padding: 15px; 
+                min-height: 180px; text-align: center; align-items: center;
+            }
+            .panel-left { flex: none; width: 100%; align-items: center; }
+            .panel-right { width: 100%; }
+            .chord-title { font-size: 26px; }
+            .chord-notes-display { font-size: 16px; margin-bottom: 5px; }
+            .scales-container { margin: 0 auto; }
         }
     </style>
 </head>
@@ -96,13 +110,15 @@
     <div id="info-panel">
         <div class="panel-left">
             <h2 class="chord-title" id="panel-chord">--</h2>
-            <div class="chord-notes-display" id="panel-notes">Sélectionnez un accord</div>
+            <div class="chord-notes-display" id="panel-notes">Choisir un accord</div>
         </div>
         
         <div class="panel-right">
-            <div style="font-size:10px; color:#555; margin-bottom:10px; letter-spacing:1px;">GAMMES COMPATIBLES</div>
+            <div style="font-size:9px; color:#555; margin-bottom:8px; letter-spacing:1px; text-transform: uppercase;">Gammes suggérées</div>
             <div class="scales-scroll">
-                <div class="scales-container" id="scales-list"></div>
+                <div class="scales-container" id="scales-list">
+                    <div style="color:#333; font-size:11px;">...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -143,11 +159,8 @@
         let audioCtx = null;
         const nexus = document.getElementById('harmonic-nexus');
 
-        // --- MOTEUR AUDIO RÉTABLI ---
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
@@ -157,17 +170,16 @@
             const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
             const masterGain = audioCtx.createGain();
             masterGain.connect(audioCtx.destination);
-            masterGain.gain.setValueAtTime(0.15, now);
+            masterGain.gain.setValueAtTime(0.12, now);
             masterGain.gain.exponentialRampToValueAtTime(0.001, now + 3);
 
             formula.forEach((interval, i) => {
                 const osc = audioCtx.createOscillator();
-                // Octave 4 de base (480Hz environ pour le LA)
                 const freq = 16.35 * Math.pow(2, ((4 * 12) + rootChroma + interval) / 12);
                 osc.frequency.value = freq;
                 osc.type = i === 0 ? 'triangle' : 'sine';
                 osc.connect(masterGain);
-                osc.start(now + (i * 0.03));
+                osc.start(now + (i * 0.035));
                 osc.stop(now + 3);
             });
         }
@@ -178,7 +190,6 @@
                 const angleRad = ((i * 30) - 90) * (Math.PI / 180);
                 const extM = CHORD_FORMULAS[currentLevel].labelM;
                 const extm = currentLevel > 1 ? CHORD_FORMULAS[currentLevel].labelm.replace('m','') : '';
-                
                 createNode(data.note + extM, i, 'major-node', 275, angleRad, 'maj', data.chroma);
                 createNode(data.rel + extm, i, 'minor-node', 175, angleRad, 'min', data.relChroma);
             });
@@ -191,7 +202,7 @@
             node.style.left = `${300 + radius * Math.cos(rad) - 32}px`;
             node.style.top = `${300 + radius * Math.sin(rad) - 32}px`;
             node.onclick = () => {
-                playChordSound(chroma, type); // Son réactivé ici
+                playChordSound(chroma, type);
                 highlightNode(node);
                 updatePanel(text, chroma, type);
             };
@@ -206,8 +217,7 @@
         function updatePanel(chordName, chroma, type) {
             document.getElementById('panel-chord').innerText = chordName;
             const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
-            const chordNotes = formula.map(interval => NOTES[(chroma + interval) % 12]).join(" . ");
-            document.getElementById('panel-notes').innerText = chordNotes;
+            document.getElementById('panel-notes').innerText = formula.map(interval => NOTES[(chroma + interval) % 12]).join(" . ");
 
             const container = document.getElementById('scales-list');
             container.innerHTML = '';
