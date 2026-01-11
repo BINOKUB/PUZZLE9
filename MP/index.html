@@ -55,26 +55,23 @@
         #nexus-container { flex-grow: 1; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; z-index: 1; }
         #harmonic-nexus { position: relative; width: 600px; height: 600px; transform-origin: center center; flex-shrink: 0; }
 
-        /* NOUVEAU : CENTRE DU NEXUS */
+        /* --- NOUVEAU : CENTRE DU NEXUS --- */
         #nexus-center {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 180px; height: 180px; display: flex; flex-direction: column;
+            width: 200px; height: 200px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; text-align: center; z-index: 5;
         }
-
         #center-logo {
-            font-size: 60px; font-weight: 100; color: var(--highlight-focus);
+            font-size: 64px; font-weight: 100; color: var(--highlight-focus);
             text-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
             animation: pulse-m 3s infinite ease-in-out;
         }
-
         #center-notes {
             font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold;
             color: #fff; letter-spacing: 2px; display: none;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
-
-        @keyframes pulse-m { 0%, 100% { opacity: 0.4; transform: scale(0.95); } 50% { opacity: 0.9; transform: scale(1.05); } }
+        @keyframes pulse-m { 0%, 100% { opacity: 0.3; transform: scale(0.95); } 50% { opacity: 0.8; transform: scale(1.05); } }
 
         .ring { position: absolute; border-radius: 50%; border: 1px solid var(--ring-color); top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
         .ring-outer { width: 550px; height: 550px; }
@@ -84,27 +81,25 @@
             position: absolute; display: flex; align-items: center; justify-content: center;
             width: 64px; height: 64px; border-radius: 50%;
             background: var(--bg-color); border: 2px solid #333;
-            font-weight: bold; cursor: pointer; transition: all 0.2s; 
-            z-index: 10; font-size: 13px; text-align: center;
+            font-weight: bold; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10; font-size: 13px; text-align: center; line-height: 1.1;
         }
         .active-focus { border-color: var(--highlight-focus) !important; color: var(--highlight-focus) !important; box-shadow: 0 0 var(--glow-strength) var(--highlight-focus); transform: scale(1.2); z-index: 20; background: #000; }
-        .active-neighbor { border-color: var(--highlight-rel) !important; color: var(--highlight-rel) !important; transform: scale(1.05); }
+        .active-neighbor { border-color: var(--highlight-rel) !important; color: var(--highlight-rel) !important; transform: scale(1.05); z-index: 15; }
 
         #info-panel {
-            width: 100%; min-height: 120px; background: var(--panel-bg);
+            width: 100%; min-height: 160px; background: var(--panel-bg);
             border-top: 1px solid #333; padding: 15px 20px;
             padding-bottom: max(15px, env(safe-area-inset-bottom));
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.8); z-index: 20; flex-shrink: 0;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8); z-index: 20; flex-shrink: 0; backdrop-filter: blur(10px);
         }
-
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .chord-title { font-size: 24px; color: var(--highlight-focus); margin: 0; font-weight: 300; }
-        .scales-scroll { overflow-x: auto; scrollbar-width: none; }
-        .scales-container { display: flex; gap: 10px; width: fit-content; }
-        .scale-card { background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 4px; padding: 8px 12px; min-width: 140px; }
-        .scale-name { color: var(--highlight-rel); font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .scale-notes { color: #ccc; font-size: 10px; }
-
+        .panel-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .chord-title { font-size: 28px; color: var(--highlight-focus); margin: 0; font-weight: 300; }
+        .scales-scroll { overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .scales-container { display: flex; gap: 10px; width: fit-content; margin: 0 auto; }
+        .scale-card { background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 4px; padding: 8px 12px; min-width: 150px; flex-shrink: 0; }
+        .scale-name { color: var(--highlight-rel); font-size: 11px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .scale-notes { color: #ccc; font-size: 10px; font-family: 'Courier New', monospace; }
     </style>
 </head>
 <body>
@@ -131,12 +126,18 @@
 
     <div id="info-panel">
         <div class="panel-header">
-            <h2 class="chord-title" id="panel-chord">--</h2>
-            <div style="font-size:10px; color:#555; text-transform: uppercase; letter-spacing:1px;">Gammes Suggérées</div>
+            <div>
+                <h2 class="chord-title" id="panel-chord">--</h2>
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;" id="panel-detail">SÉLECTIONNEZ UN ACCORD</span>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:10px; color:#555">COMPATIBILITÉ</div>
+                <div style="font-size:12px; color:#888">MODES & GAMMES</div>
+            </div>
         </div>
         <div class="scales-scroll">
             <div class="scales-container" id="scales-list">
-                <div style="color:#444; font-size:12px;">En attente...</div>
+                <div style="color:#444; font-size:12px; padding-top:5px">En attente...</div>
             </div>
         </div>
     </div>
@@ -160,13 +161,15 @@
 
         const SCALES = {
             maj: [
-                { name: "Ionien", intervals: [0, 2, 4, 5, 7, 9, 11] },
+                { name: "Ionien (Majeur)", intervals: [0, 2, 4, 5, 7, 9, 11] },
                 { name: "Lydien", intervals: [0, 2, 4, 6, 7, 9, 11] },
+                { name: "Mixolydien", intervals: [0, 2, 4, 5, 7, 9, 10] },
                 { name: "Penta Majeure", intervals: [0, 2, 4, 7, 9] }
             ],
             min: [
-                { name: "Aeolien", intervals: [0, 2, 3, 5, 7, 8, 10] },
-                { name: "Dorien", intervals: [0, 2, 3, 5, 7, 9, 10] },
+                { name: "Aeolien (Naturel)", intervals: [0, 2, 3, 5, 7, 8, 10] },
+                { name: "Dorien (Jazz)", intervals: [0, 2, 3, 5, 7, 9, 10] },
+                { name: "Phrygien", intervals: [0, 1, 3, 5, 7, 8, 10] },
                 { name: "Penta Mineure", intervals: [0, 3, 5, 7, 10] }
             ]
         };
@@ -187,16 +190,16 @@
             const masterGain = audioCtx.createGain();
             masterGain.connect(audioCtx.destination);
             masterGain.gain.setValueAtTime(0.15, now);
-            masterGain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+            masterGain.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
 
             formula.forEach((interval, i) => {
                 const osc = audioCtx.createOscillator();
-                const freq = 16.35 * Math.pow(2, ((4 * 12) + rootChroma + interval) / 12);
+                const freq = 16.35 * Math.pow(2, ((i === 0 ? 3 : 4) * 12 + (rootChroma + interval)) / 12);
                 osc.frequency.value = freq;
                 osc.type = i === 0 ? 'triangle' : 'sine';
                 osc.connect(masterGain);
                 osc.start(now + (i * 0.04));
-                osc.stop(now + 3);
+                osc.stop(now + 3.5);
             });
         }
 
@@ -214,42 +217,54 @@
             const node = document.createElement('div');
             node.className = `note-node ${cssClass}`;
             node.innerText = text;
+            node.dataset.index = index;
+            node.dataset.type = type;
             node.style.left = `${300 + radius * Math.cos(rad) - 32}px`;
             node.style.top = `${300 + radius * Math.sin(rad) - 32}px`;
-            node.onclick = () => {
-                playChordSound(chroma, type);
-                updateUI(index, type, chroma, text);
-                highlightNetwork(index, type);
-            };
+            node.onclick = () => activateChord(index, type, chroma, text, node);
             nexus.appendChild(node);
         }
 
-        function updateUI(index, type, chroma, text) {
-            // Centre Nexus
-            document.getElementById('center-logo').style.display = 'none';
-            const noteBox = document.getElementById('center-notes');
-            noteBox.style.display = 'block';
-            const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
-            noteBox.innerText = formula.map(inter => NOTES[(chroma + inter) % 12]).join(" . ");
-
-            // Panneau Bas
-            document.getElementById('panel-chord').innerText = text;
-            const container = document.getElementById('scales-list');
-            container.innerHTML = '';
-            (type === 'maj' ? SCALES.maj : SCALES.min).forEach(template => {
-                const card = document.createElement('div');
-                card.className = 'scale-card';
-                card.innerHTML = `<div class="scale-name">${template.name}</div><div class="scale-notes">${template.intervals.map(it => NOTES[(chroma + it) % 12]).join("-")}</div>`;
-                container.appendChild(card);
-            });
+        function activateChord(index, type, chroma, text, nodeElement) {
+            playChordSound(chroma, type);
+            highlightNetwork(index, type);
+            updateCenterNotes(chroma, type);
+            updatePanel(text, chroma, type);
         }
 
         function highlightNetwork(index, type) {
             document.querySelectorAll('.note-node').forEach(n => n.classList.remove('active-focus', 'active-neighbor'));
             const nodes = document.querySelectorAll('.note-node');
-            nodes.forEach(n => {
-                const i = parseInt(n.dataset.index);
-                if (n.innerText.includes(CYCLE[index][type === 'maj' ? 'note' : 'rel'])) n.classList.add('active-focus');
+            const prev = (index - 1 + 12) % 12;
+            const next = (index + 1) % 12;
+
+            nodes.forEach(node => {
+                const idx = parseInt(node.dataset.index);
+                const nType = node.dataset.type;
+                if (idx === index && nType === type) node.classList.add('active-focus');
+                else if ((idx === index && nType !== type) || (idx === prev) || (idx === next)) node.classList.add('active-neighbor');
+            });
+        }
+
+        function updateCenterNotes(chroma, type) {
+            document.getElementById('center-logo').style.display = 'none';
+            const notesEl = document.getElementById('center-notes');
+            notesEl.style.display = 'block';
+            const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
+            notesEl.innerText = formula.map(inter => NOTES[(chroma + inter) % 12]).join(" . ");
+        }
+
+        function updatePanel(chordName, chroma, type) {
+            document.getElementById('panel-chord').innerText = chordName;
+            document.getElementById('panel-detail').innerText = (type === 'maj' ? "Accord Majeur" : "Accord Mineur") + (currentLevel === 2 ? " 7ème" : currentLevel === 3 ? " Jazz" : "");
+            
+            const container = document.getElementById('scales-list');
+            container.innerHTML = '';
+            (type === 'maj' ? SCALES.maj : SCALES.min).forEach(template => {
+                const card = document.createElement('div');
+                card.className = 'scale-card';
+                card.innerHTML = `<div class="scale-name">${template.name}</div><div class="scale-notes">${template.intervals.map(it => NOTES[(chroma + it) % 12]).join(" - ")}</div>`;
+                container.appendChild(card);
             });
         }
 
@@ -257,6 +272,8 @@
             currentLevel = lvl;
             document.querySelectorAll('.lvl-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === lvl));
             renderNodes();
+            document.getElementById('center-logo').style.display = 'block';
+            document.getElementById('center-notes').style.display = 'none';
         }
 
         function resizeNexus() {
