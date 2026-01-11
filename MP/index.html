@@ -55,10 +55,9 @@
         #nexus-container { flex-grow: 1; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; z-index: 1; }
         #harmonic-nexus { position: relative; width: 600px; height: 600px; transform-origin: center center; flex-shrink: 0; }
 
-        /* --- NOUVEAU : CENTRE DU NEXUS --- */
         #nexus-center {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 200px; height: 200px; display: flex; flex-direction: column;
+            width: 220px; height: 220px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; text-align: center; z-index: 5;
         }
         #center-logo {
@@ -67,7 +66,7 @@
             animation: pulse-m 3s infinite ease-in-out;
         }
         #center-notes {
-            font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold;
+            font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold;
             color: #fff; letter-spacing: 2px; display: none;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
@@ -143,14 +142,25 @@
     </div>
 
     <script>
-        const NOTES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        // Mappage théorique : Index -> Nom avec préférence (pref: 0=Bémol, 1=Dièse)
+        const THEO_MAP = [
+            ["C", "C"], ["Db", "C#"], ["D", "D"], ["Eb", "D#"], ["E", "E"], ["F", "F"],
+            ["Gb", "F#"], ["G", "G"], ["Ab", "G#"], ["A", "A"], ["Bb", "A#"], ["B", "B"]
+        ];
+
         const CYCLE = [
-            { note: "C", chroma: 0, rel: "Am", relChroma: 9 }, { note: "G", chroma: 7, rel: "Em", relChroma: 4 },
-            { note: "D", chroma: 2, rel: "Bm", relChroma: 11 }, { note: "A", chroma: 9, rel: "F#m", relChroma: 6 },
-            { note: "E", chroma: 4, rel: "C#m", relChroma: 1 }, { note: "B", chroma: 11, rel: "G#m", relChroma: 8 },
-            { note: "Gb", chroma: 6, rel: "Ebm", relChroma: 3 }, { note: "Db", chroma: 1, rel: "Bbm", relChroma: 10 },
-            { note: "Ab", chroma: 8, rel: "Fm", relChroma: 5 }, { note: "Eb", chroma: 3, rel: "Cm", relChroma: 0 },
-            { note: "Bb", chroma: 10, rel: "Gm", relChroma: 7 }, { note: "F", chroma: 5, rel: "Dm", relChroma: 2 }
+            { note: "C", chroma: 0, rel: "Am", relChroma: 9, pref: 1 }, 
+            { note: "G", chroma: 7, rel: "Em", relChroma: 4, pref: 1 },
+            { note: "D", chroma: 2, rel: "Bm", relChroma: 11, pref: 1 }, 
+            { note: "A", chroma: 9, rel: "F#m", relChroma: 6, pref: 1 },
+            { note: "E", chroma: 4, rel: "C#m", relChroma: 1, pref: 1 }, 
+            { note: "B", chroma: 11, rel: "G#m", relChroma: 8, pref: 1 },
+            { note: "Gb", chroma: 6, rel: "Ebm", relChroma: 3, pref: 0 }, 
+            { note: "Db", chroma: 1, rel: "Bbm", relChroma: 10, pref: 0 },
+            { note: "Ab", chroma: 8, rel: "Fm", relChroma: 5, pref: 0 }, 
+            { note: "Eb", chroma: 3, rel: "Cm", relChroma: 0, pref: 0 },
+            { note: "Bb", chroma: 10, rel: "Gm", relChroma: 7, pref: 0 }, 
+            { note: "F", chroma: 5, rel: "Dm", relChroma: 2, pref: 0 }
         ];
 
         const CHORD_FORMULAS = {
@@ -177,6 +187,11 @@
         let currentLevel = 1;
         let audioCtx = null;
         const nexus = document.getElementById('harmonic-nexus');
+
+        // Fonction de nomenclature intelligente
+        function getNoteName(chroma, preference) {
+            return THEO_MAP[chroma % 12][preference];
+        }
 
         function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -208,12 +223,14 @@
             CYCLE.forEach((data, i) => {
                 const angleRad = ((i * 30) - 90) * (Math.PI / 180);
                 const extm = currentLevel > 1 ? CHORD_FORMULAS[currentLevel].labelm.replace('m','') : '';
-                createNode(data.note + CHORD_FORMULAS[currentLevel].labelM, i, 'major-node', 275, angleRad, 'maj', data.chroma);
-                createNode(data.rel + extm, i, 'minor-node', 175, angleRad, 'min', data.relChroma);
+                
+                // On utilise le nom stocké dans CYCLE pour les boutons du cercle
+                createNode(data.note + CHORD_FORMULAS[currentLevel].labelM, i, 'major-node', 275, angleRad, 'maj', data.chroma, data.pref);
+                createNode(data.rel + extm, i, 'minor-node', 175, angleRad, 'min', data.relChroma, data.pref);
             });
         }
 
-        function createNode(text, index, cssClass, radius, rad, type, chroma) {
+        function createNode(text, index, cssClass, radius, rad, type, chroma, pref) {
             const node = document.createElement('div');
             node.className = `note-node ${cssClass}`;
             node.innerText = text;
@@ -221,15 +238,15 @@
             node.dataset.type = type;
             node.style.left = `${300 + radius * Math.cos(rad) - 32}px`;
             node.style.top = `${300 + radius * Math.sin(rad) - 32}px`;
-            node.onclick = () => activateChord(index, type, chroma, text, node);
+            node.onclick = () => activateChord(index, type, chroma, text, node, pref);
             nexus.appendChild(node);
         }
 
-        function activateChord(index, type, chroma, text, nodeElement) {
+        function activateChord(index, type, chroma, text, nodeElement, pref) {
             playChordSound(chroma, type);
             highlightNetwork(index, type);
-            updateCenterNotes(chroma, type);
-            updatePanel(text, chroma, type);
+            updateCenterNotes(chroma, type, pref);
+            updatePanel(text, chroma, type, pref);
         }
 
         function highlightNetwork(index, type) {
@@ -246,15 +263,16 @@
             });
         }
 
-        function updateCenterNotes(chroma, type) {
+        function updateCenterNotes(chroma, type, pref) {
             document.getElementById('center-logo').style.display = 'none';
             const notesEl = document.getElementById('center-notes');
             notesEl.style.display = 'block';
             const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
-            notesEl.innerText = formula.map(inter => NOTES[(chroma + inter) % 12]).join(" . ");
+            // Traduction des notes selon la préférence de l'accord
+            notesEl.innerText = formula.map(inter => getNoteName(chroma + inter, pref)).join(" . ");
         }
 
-        function updatePanel(chordName, chroma, type) {
+        function updatePanel(chordName, chroma, type, pref) {
             document.getElementById('panel-chord').innerText = chordName;
             document.getElementById('panel-detail').innerText = (type === 'maj' ? "Accord Majeur" : "Accord Mineur") + (currentLevel === 2 ? " 7ème" : currentLevel === 3 ? " Jazz" : "");
             
@@ -263,7 +281,9 @@
             (type === 'maj' ? SCALES.maj : SCALES.min).forEach(template => {
                 const card = document.createElement('div');
                 card.className = 'scale-card';
-                card.innerHTML = `<div class="scale-name">${template.name}</div><div class="scale-notes">${template.intervals.map(it => NOTES[(chroma + it) % 12]).join(" - ")}</div>`;
+                // Traduction des notes de la gamme selon la préférence de l'accord
+                const notesList = template.intervals.map(it => getNoteName(chroma + it, pref)).join(" - ");
+                card.innerHTML = `<div class="scale-name">${template.name}</div><div class="scale-notes">${notesList}</div>`;
                 container.appendChild(card);
             });
         }
