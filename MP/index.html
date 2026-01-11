@@ -1,95 +1,171 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+
+    <link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./icon.png">
+<link rel="apple-touch-icon" href="./icon.png">
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MELODY PRO | Harmonie & Théorie</title>
     
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
+            /* PALETTE DARK MODE & NEON */
             --bg-color: #050508;
             --panel-bg: #0f0f12;
             --ring-color: rgba(255, 255, 255, 0.1);
             --text-primary: #fff;
             --text-muted: #888;
-            --highlight-focus: #00f3ff; 
-            --highlight-rel: #ff00ff;   
+            --highlight-focus: #00f3ff; /* CYAN (Focus) */
+            --highlight-rel: #ff00ff;   /* MAGENTA (Suggestion) */
+            --glow-strength: 15px;
             --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
             font-family: var(--font-main);
+            
+            /* STRUCTURE FLEX VERTICALE + FIX MOBILE MODERNES */
             display: flex; flex-direction: column; 
-            height: 100dvh; margin: 0; overflow: hidden;
+            height: 100vh;   /* Fallback */
+            height: 100dvh;  /* Dynamic Viewport Height (Ignore la barre d'URL) */
+            
+            margin: 0; overflow: hidden;
+            user-select: none; touch-action: none;
         }
 
-        header { padding: 15px; text-align: center; z-index: 10; flex-shrink: 0; }
-        h1 { font-weight: 300; letter-spacing: 6px; font-size: 18px; margin-bottom: 10px; }
+      
+ /* --- 1. HEADER (Haut) --- */
+        header {
+            width: 100%; padding: 15px 10px; text-align: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            z-index: 10; flex-shrink: 0;
+        }
+
+        h1 {
+            font-weight: 300; letter-spacing: 6px; text-transform: uppercase;
+            margin: 0 0 10px 0; font-size: 18px;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+        }
 
         .complexity-selector { display: flex; justify-content: center; gap: 8px; }
+
         .lvl-btn {
             background: rgba(255,255,255,0.05); border: 1px solid #333; color: #888;
-            padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 11px;
+            padding: 8px 14px; border-radius: 4px; cursor: pointer;
+            font-size: 11px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;
+            transition: all 0.3s;
         }
-        .lvl-btn.active { border-color: var(--highlight-focus); color: #000; background: var(--highlight-focus); }
+        
+        .lvl-btn:hover { border-color: #666; color: #fff; }
+        .lvl-btn.active {
+            border-color: var(--highlight-focus); color: #000;
+            background: var(--highlight-focus);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
 
-        /* CONTENEUR DU CERCLE */
-        #nexus-container { 
-            flex-grow: 1; display: flex; align-items: center; justify-content: center; 
-            position: relative; width: 100%; overflow: hidden;
+        /* --- 2. CERCLE HARMONIQUE (Milieu Flexible) --- */
+        #nexus-container {
+            flex-grow: 1; /* Prend tout l'espace disponible */
+            width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            z-index: 1;
         }
-        #harmonic-nexus { position: relative; width: 600px; height: 600px; transform-origin: center center; }
+
+        #harmonic-nexus {
+            position: relative; width: 600px; height: 600px;
+            transform-origin: center center;
+            flex-shrink: 0;
+        }
+
+        /* ANNEAUX (Centrés parfaitement) */
+        .ring { 
+            position: absolute; border-radius: 50%; 
+            border: 1px solid var(--ring-color); 
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            pointer-events: none; 
+        }
+        .ring-outer { width: 550px; height: 550px; }
+        .ring-inner { width: 350px; height: 350px; border-style: dashed; opacity: 0.3; }
 
         .note-node {
             position: absolute; display: flex; align-items: center; justify-content: center;
             width: 64px; height: 64px; border-radius: 50%;
             background: var(--bg-color); border: 2px solid #333;
-            font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 13px;
+            font-weight: bold; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            z-index: 10; font-size: 13px; text-align: center; line-height: 1.1;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
-        .active-focus { border-color: var(--highlight-focus) !important; color: var(--highlight-focus); transform: scale(1.2); background: #000; }
 
-        /* PANNEAU D'INFO - FIX FLEXBOX */
+        .major-node { font-size: 14px; }
+        .minor-node { font-size: 12px; color: #aaa; }
+
+        /* États interactifs */
+        .active-focus {
+            border-color: var(--highlight-focus) !important; color: var(--highlight-focus) !important;
+            box-shadow: 0 0 var(--glow-strength) var(--highlight-focus), inset 0 0 15px rgba(0, 243, 255, 0.2);
+            transform: scale(1.2); z-index: 20; background: #000;
+        }
+        .active-neighbor {
+            border-color: var(--highlight-rel) !important; color: var(--highlight-rel) !important;
+            box-shadow: 0 0 calc(var(--glow-strength)*0.6) var(--highlight-rel);
+            transform: scale(1.05); z-index: 15;
+        }
+
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.6); opacity: 0; } }
+        .playing::after {
+            content: ''; position: absolute; top:0; left:0; width: 100%; height: 100%;
+            border-radius: 50%; border: 2px solid var(--highlight-focus);
+            animation: pulse-ring 0.5s ease-out;
+        }
+
+        /* --- 3. PANNEAU D'INFORMATION (Bas) --- */
         #info-panel {
-            width: 100%; min-height: 160px;
-            background: var(--panel-bg); border-top: 1px solid #333;
-            padding: 20px; display: flex; flex-direction: row; gap: 30px;
+            width: 100%; 
+            height: auto; min-height: 160px; /* Hauteur flexible mais min */
+            background: var(--panel-bg);
+            border-top: 1px solid #333;
+            display: flex; flex-direction: column;
+            
+            /* PADDING SAFE AREA (Pour iPhone X et récents) */
+            padding: 15px 20px;
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+            
             box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
             z-index: 20; flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
 
-        .panel-left { flex: 0 0 250px; display: flex; flex-direction: column; justify-content: center; }
-        .chord-title { font-size: 32px; color: var(--highlight-focus); margin: 0; font-weight: 300; }
-        .chord-notes-display {
-            font-family: 'Courier New', monospace;
-            color: #00f3ff; font-size: 18px; font-weight: bold;
-            margin-top: 5px; letter-spacing: 2px;
+        .panel-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .chord-title { font-size: 28px; color: var(--highlight-focus); margin: 0; font-weight: 300; line-height: 1; }
+        .chord-subtitle { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .scales-scroll { overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; mask-image: linear-gradient(to right, black 90%, transparent 100%); }
+        
+        /* Centrage des gammes sur PC */
+        .scales-container { 
+            display: flex; gap: 10px; 
+            width: fit-content; margin: 0 auto;
         }
-
-        .panel-right { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
-        .scales-scroll { overflow-x: auto; scrollbar-width: none; width: 100%; -webkit-overflow-scrolling: touch; }
-        .scales-container { display: flex; gap: 15px; padding-bottom: 5px; }
         
         .scale-card {
             background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 4px;
-            padding: 10px 15px; min-width: 180px; flex-shrink: 0;
+            padding: 8px 12px; min-width: 150px; flex-shrink: 0;
         }
-        .scale-name { color: var(--highlight-rel); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-        .scale-notes { color: #ccc; font-size: 12px; }
+        .scale-name { color: var(--highlight-rel); font-size: 11px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+        .scale-notes { color: #ccc; font-size: 10px; font-family: 'Courier New', monospace; letter-spacing: -0.5px; }
 
-        /* AJUSTEMENT MOBILE SÉCURISÉ */
-        @media (max-width: 768px) {
-            #info-panel { 
-                flex-direction: column; gap: 15px; padding: 15px; 
-                min-height: 180px; text-align: center; align-items: center;
-            }
-            .panel-left { flex: none; width: 100%; align-items: center; }
-            .panel-right { width: 100%; }
-            .chord-title { font-size: 26px; }
-            .chord-notes-display { font-size: 16px; margin-bottom: 5px; }
-            .scales-container { margin: 0 auto; }
-        }
     </style>
 </head>
 <body>
@@ -104,40 +180,68 @@
     </header>
 
     <div id="nexus-container">
-        <div id="harmonic-nexus"></div>
+        <div id="harmonic-nexus">
+            <div class="ring ring-outer"></div>
+            <div class="ring ring-inner"></div>
+            </div>
     </div>
 
     <div id="info-panel">
-        <div class="panel-left">
-            <h2 class="chord-title" id="panel-chord">--</h2>
-            <div class="chord-notes-display" id="panel-notes">Choisir un accord</div>
-        </div>
-        
-        <div class="panel-right">
-            <div style="font-size:9px; color:#555; margin-bottom:8px; letter-spacing:1px; text-transform: uppercase;">Gammes suggérées</div>
-            <div class="scales-scroll">
-                <div class="scales-container" id="scales-list">
-                    <div style="color:#333; font-size:11px;">...</div>
-                </div>
+        <div class="panel-header">
+            <div>
+                <h2 class="chord-title" id="panel-chord">--</h2>
+                <span class="chord-subtitle" id="panel-detail">SÉLECTIONNEZ UN ACCORD</span>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:10px; color:#555">COMPATIBILITÉ</div>
+                <div style="font-size:12px; color:#888">MODES & GAMMES</div>
             </div>
         </div>
+        <div class="scales-scroll">
+            <div class="scales-container" id="scales-list">
+                <div style="color:#444; font-size:12px; padding-top:5px">En attente...</div>
+            </div>
+        </div>
+<!-- 						DEBUT DE DESACTIVATION DU CODE
+<div style="text-align:center; margin-top:15px; padding-top:10px; border-top:1px solid #333; font-size:10px; color:#666; letter-spacing:1px;">
+            APP DÉVELOPPÉE PAR <a href="mailto:ton-douimet61@gmail.com" style="color:var(--highlight-focus); text-decoration:none; font-weight:bold;">BINOKUB</a>
+        </div> 					FIN DE DESACTIVATION DU CODE -->
     </div>
 
     <script>
+        // --- DONNÉES MUSICALES ---
+        
         const NOTES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        
         const CYCLE = [
-            { note: "C", chroma: 0, rel: "Am", relChroma: 9 }, { note: "G", chroma: 7, rel: "Em", relChroma: 4 },
-            { note: "D", chroma: 2, rel: "Bm", relChroma: 11 }, { note: "A", chroma: 9, rel: "F#m", relChroma: 6 },
-            { note: "E", chroma: 4, rel: "C#m", relChroma: 1 }, { note: "B", chroma: 11, rel: "G#m", relChroma: 8 },
-            { note: "Gb", chroma: 6, rel: "Ebm", relChroma: 3 }, { note: "Db", chroma: 1, rel: "Bbm", relChroma: 10 },
-            { note: "Ab", chroma: 8, rel: "Fm", relChroma: 5 }, { note: "Eb", chroma: 3, rel: "Cm", relChroma: 0 },
-            { note: "Bb", chroma: 10, rel: "Gm", relChroma: 7 }, { note: "F", chroma: 5, rel: "Dm", relChroma: 2 }
+            { note: "C",  chroma: 0,  rel: "Am",  relChroma: 9  },
+            { note: "G",  chroma: 7,  rel: "Em",  relChroma: 4  },
+            { note: "D",  chroma: 2,  rel: "Bm",  relChroma: 11 },
+            { note: "A",  chroma: 9,  rel: "F#m", relChroma: 6  },
+            { note: "E",  chroma: 4,  rel: "C#m", relChroma: 1  },
+            { note: "B",  chroma: 11, rel: "G#m", relChroma: 8  },
+            { note: "Gb", chroma: 6,  rel: "Ebm", relChroma: 3  },
+            { note: "Db", chroma: 1,  rel: "Bbm", relChroma: 10 },
+            { note: "Ab", chroma: 8,  rel: "Fm",  relChroma: 5  },
+            { note: "Eb", chroma: 3,  rel: "Cm",  relChroma: 0  },
+            { note: "Bb", chroma: 10, rel: "Gm",  relChroma: 7  },
+            { note: "F",  chroma: 5,  rel: "Dm",  relChroma: 2  }
         ];
 
+        // FORMULES (Correctif Level 1 et Jazz Level 3 inclus)
         const CHORD_FORMULAS = {
-            1: { maj: [0, 4, 7], labelM: "", min: [0, 3, 7], labelm: "m" },
-            2: { maj: [0, 4, 7, 11], labelM: "maj7", min: [0, 3, 7, 10], labelm: "m7" },
-            3: { maj: [0, 4, 7, 11, 14, 21], labelM: "maj13", min: [0, 3, 7, 10, 14, 17], labelm: "m11" }
+            1: { 
+                maj: [0, 4, 7], labelM: "",
+                min: [0, 3, 7], labelm: "m"
+            },
+            2: { 
+                maj: [0, 4, 7, 11], labelM: "maj7",
+                min: [0, 3, 7, 10], labelm: "m7"
+            },
+            3: { 
+                maj: [0, 4, 11, 14, 21], labelM: "maj13", // Jazz 13
+                min: [0, 3, 10, 14, 17], labelm: "m11"    // Jazz 11
+            }
         };
 
         const SCALES = {
@@ -157,41 +261,76 @@
 
         let currentLevel = 1;
         let audioCtx = null;
-        const nexus = document.getElementById('harmonic-nexus');
+        let lockedNodeIndex = null;
 
+        // --- AUDIO ENGINE ---
+        
         function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
             if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function getFrequency(noteIndex, octave) {
+            const baseFreq = 16.35; 
+            const totalSemitones = (octave * 12) + noteIndex;
+            return baseFreq * Math.pow(2, totalSemitones / 12);
         }
 
         function playChordSound(rootChroma, type) {
             initAudio();
             const now = audioCtx.currentTime;
             const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
+            
+            const volume = 0.25 / Math.sqrt(formula.length); 
             const masterGain = audioCtx.createGain();
             masterGain.connect(audioCtx.destination);
-            masterGain.gain.setValueAtTime(0.12, now);
-            masterGain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+            masterGain.gain.setValueAtTime(volume, now);
+            masterGain.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
 
             formula.forEach((interval, i) => {
                 const osc = audioCtx.createOscillator();
-                const freq = 16.35 * Math.pow(2, ((4 * 12) + rootChroma + interval) / 12);
-                osc.frequency.value = freq;
-                osc.type = i === 0 ? 'triangle' : 'sine';
+                const noteIndex = (rootChroma + interval) % 12;
+                
+                // Voicing Spread (Jazz)
+                let octave = 4;
+                if (i === 0) octave = 3; 
+                if (interval > 12) octave = 5; 
+                
+                osc.frequency.value = getFrequency(noteIndex, octave);
+                osc.type = i === 0 ? 'triangle' : 'sine'; 
+                
                 osc.connect(masterGain);
-                osc.start(now + (i * 0.035));
-                osc.stop(now + 3);
+                
+                const delay = i * 0.04; 
+                osc.start(now + delay);
+                osc.stop(now + 3.5);
             });
         }
 
+        // --- RENDU GRAPHIQUE ---
+
+        const nexus = document.getElementById('harmonic-nexus');
+        const radiusOuter = 275;
+        const radiusInner = 175;
+
         function renderNodes() {
-            nexus.innerHTML = '';
+            const existingNodes = document.querySelectorAll('.note-node');
+            existingNodes.forEach(e => e.remove());
+
             CYCLE.forEach((data, i) => {
                 const angleRad = ((i * 30) - 90) * (Math.PI / 180);
-                const extM = CHORD_FORMULAS[currentLevel].labelM;
-                const extm = currentLevel > 1 ? CHORD_FORMULAS[currentLevel].labelm.replace('m','') : '';
-                createNode(data.note + extM, i, 'major-node', 275, angleRad, 'maj', data.chroma);
-                createNode(data.rel + extm, i, 'minor-node', 175, angleRad, 'min', data.relChroma);
+                
+                // FIX "mm" : On n'ajoute rien si Level 1 car data.rel contient déjà 'm'
+                const extensionMin = currentLevel > 1 ? CHORD_FORMULAS[currentLevel].labelm.replace('m','') : '';
+                
+                const labelMaj = data.note + CHORD_FORMULAS[currentLevel].labelM;
+                const labelMin = data.rel + extensionMin;
+
+                createNode(labelMaj, i, 'major-node', radiusOuter, angleRad, 'maj', data.chroma);
+                createNode(labelMin, i, 'minor-node', radiusInner, angleRad, 'min', data.relChroma);
             });
         }
 
@@ -199,52 +338,127 @@
             const node = document.createElement('div');
             node.className = `note-node ${cssClass}`;
             node.innerText = text;
-            node.style.left = `${300 + radius * Math.cos(rad) - 32}px`;
-            node.style.top = `${300 + radius * Math.sin(rad) - 32}px`;
-            node.onclick = () => {
-                playChordSound(chroma, type);
-                highlightNode(node);
-                updatePanel(text, chroma, type);
-            };
+            node.dataset.index = index;
+            node.dataset.type = type;
+            node.dataset.chroma = chroma;
+
+            const x = 300 + radius * Math.cos(rad) - 32; 
+            const y = 300 + radius * Math.sin(rad) - 32;
+            node.style.left = `${x}px`;
+            node.style.top = `${y}px`;
+
+            node.onmouseenter = () => highlightNetwork(index, type);
+            node.onclick = () => activateChord(index, type, chroma, text, node);
+            node.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                activateChord(index, type, chroma, text, node);
+            }, {passive: false});
+            
             nexus.appendChild(node);
         }
 
-        function highlightNode(el) {
-            document.querySelectorAll('.note-node').forEach(n => n.classList.remove('active-focus'));
-            el.classList.add('active-focus');
+        // --- INTERACTIONS ---
+
+        function activateChord(index, type, chroma, text, nodeElement) {
+            playChordSound(chroma, type);
+            
+            nodeElement.classList.remove('playing');
+            void nodeElement.offsetWidth;
+            nodeElement.classList.add('playing');
+
+            lockedNodeIndex = index;
+            highlightNetwork(index, type);
+            updatePanel(text, chroma, type);
+        }
+
+        function highlightNetwork(index, type) {
+            document.querySelectorAll('.note-node').forEach(n => {
+                n.classList.remove('active-focus', 'active-neighbor');
+            });
+
+            const nodes = document.querySelectorAll('.note-node');
+            const prev = (index - 1 + 12) % 12;
+            const next = (index + 1) % 12;
+
+            nodes.forEach(node => {
+                const idx = parseInt(node.dataset.index);
+                const nType = node.dataset.type;
+
+                if (idx === index && nType === type) {
+                    node.classList.add('active-focus');
+                }
+                else if ((idx === index && nType !== type) || (idx === prev) || (idx === next)) {
+                    node.classList.add('active-neighbor');
+                }
+            });
         }
 
         function updatePanel(chordName, chroma, type) {
             document.getElementById('panel-chord').innerText = chordName;
-            const formula = type === 'maj' ? CHORD_FORMULAS[currentLevel].maj : CHORD_FORMULAS[currentLevel].min;
-            document.getElementById('panel-notes').innerText = formula.map(interval => NOTES[(chroma + interval) % 12]).join(" . ");
+            
+            let desc = type === 'maj' ? "Accord Majeur" : "Accord Mineur";
+            if(currentLevel === 2) desc += " 7ème";
+            if(currentLevel === 3) desc += type === 'maj' ? " Extension 13ème (Jazz)" : " Extension 11ème (Jazz)";
+            
+            document.getElementById('panel-detail').innerText = desc;
 
             const container = document.getElementById('scales-list');
             container.innerHTML = '';
-            (type === 'maj' ? SCALES.maj : SCALES.min).forEach(template => {
-                const notesList = template.intervals.map(inter => NOTES[(chroma + inter) % 12]).join(" - ");
+            
+            const scaleTemplates = type === 'maj' ? SCALES.maj : SCALES.min;
+            
+            scaleTemplates.forEach(template => {
+                const notesList = template.intervals.map(interval => {
+                    const noteIdx = (chroma + interval) % 12;
+                    return NOTES[noteIdx];
+                }).join(" - ");
+
                 const card = document.createElement('div');
                 card.className = 'scale-card';
-                card.innerHTML = `<div class="scale-name">${template.name}</div><div class="scale-notes">${notesList}</div>`;
+                card.innerHTML = `
+                    <div class="scale-name">${template.name}</div>
+                    <div class="scale-notes">${notesList}</div>
+                `;
                 container.appendChild(card);
             });
         }
 
+        // --- RESPONSIVE SCALE (Centrage vertical & horizontal) ---
+
         function setLevel(lvl) {
             currentLevel = lvl;
-            document.querySelectorAll('.lvl-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === lvl));
+            document.querySelectorAll('.lvl-btn').forEach((b, i) => {
+                b.classList.toggle('active', i + 1 === lvl);
+            });
             renderNodes();
+            document.getElementById('panel-chord').innerText = "--";
+            document.getElementById('scales-list').innerHTML = '<div style="color:#444; font-size:12px; padding-top:5px">Sélectionnez un nouvel accord</div>';
         }
 
         function resizeNexus() {
+            // Mesure exacte de l'espace disponible au milieu (Flexbox)
             const container = document.getElementById('nexus-container');
-            const scale = Math.min((container.clientWidth - 40) / 600, (container.clientHeight - 40) / 600);
-            nexus.style.transform = `scale(${Math.min(scale, 1.1)})`;
+            const availW = container.clientWidth;
+            const availH = container.clientHeight;
+            const margin = 20; 
+
+            // Ratio par rapport à la taille native (600px)
+            const scaleW = (availW - margin) / 600;
+            const scaleH = (availH - margin) / 600;
+            
+            let scale = Math.min(scaleW, scaleH);
+            if (scale > 1.1) scale = 1.1; 
+            
+            nexus.style.transform = `scale(${scale})`;
         }
 
         window.addEventListener('resize', resizeNexus);
+        window.addEventListener('load', resizeNexus);
+        
         renderNodes();
         resizeNexus();
+
     </script>
 </body>
+
 </html>
